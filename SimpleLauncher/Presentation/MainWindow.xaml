@@ -1,0 +1,444 @@
+﻿<Window x:Class="SimpleLauncher.Presentation.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SimpleLauncher.Presentation"
+        mc:Ignorable="d"
+        Title="Simple Launcher" Height="608" Width="955" 
+        Background="{StaticResource DarkBackgroundBrush}" MinWidth="580" MinHeight="300" Closing="Window_Closing">
+    <Window.Resources>
+        <CollectionViewSource x:Key="ServerListViewSource" Source="{Binding ServerList}"/>
+    </Window.Resources>
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Верхняя панель с меню -->
+        <Border Grid.Row="0" 
+                Background="{StaticResource SurfaceDarkBrush}"
+                CornerRadius="8"
+                Padding="15,10"
+                Margin="0,0,0,15"
+                Effect="{StaticResource ShadowSmall}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="20"/>
+                    <RowDefinition Height="10"/>
+                    <RowDefinition Height="20"
+                                   x:Name="_extraPanel"
+                                   x:FieldModifier="private"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Левое меню -->
+                <StackPanel Grid.Column="0" 
+                            Grid.Row="0"
+                            Orientation="Horizontal" 
+                            VerticalAlignment="Center">
+                    <TextBlock Text="Monitoring:" 
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               VerticalAlignment="Center"
+                               Margin="0,0,8,0"/>
+                    <ComboBox x:Name="_monitorListMenu"
+                              x:FieldModifier="private"
+                              Style="{StaticResource DarkModernComboBox}"
+                              Width="200"
+                              SelectedIndex="-1"/>
+                </StackPanel>
+                <StackPanel Grid.Column="0"
+                            Grid.ColumnSpan="5"
+                            Grid.Row="3">
+                    <Button Height="15"
+                            Background="Transparent"
+                            Foreground="{StaticResource TextSecondaryBrush}"
+                            BorderBrush="Transparent"
+                            Padding="-15"
+                            FontSize="15"
+                            Content="↑" Click="_hideExtraMenuButton_Click"
+                            x:Name="_hideExtraMenuButton"
+                            x:FieldModifier="private"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="0"
+                            Grid.Row="2"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center">
+                    <TextBlock Foreground="{StaticResource TextSecondaryBrush}"
+                                Text="Nickname: "
+                                Width="80"
+                                HorizontalAlignment="Center"
+                                x:Name="_nickNameTextBlock"
+                                x:FieldModifier="private"/>
+                    <TextBox Background="{StaticResource DarkBackgroundBrush}"
+                             Foreground="{StaticResource TextSecondaryBrush}"
+                             Text="Nickname"
+                             HorizontalAlignment="Center"
+                             Width="170"
+                             Height="20"
+                             x:Name="_nicknameInput"
+                             x:FieldModifier="private"/>
+                </StackPanel>
+
+                <!-- Заголовок по центру -->
+                <TextBlock Grid.Column="2" 
+                           Text="Server Launcher"
+                           Foreground="{StaticResource TextPrimaryBrush}"
+                           FontSize="18"
+                           FontWeight="SemiBold"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+            
+                <!-- Правое меню -->
+                <StackPanel Grid.Column="4" 
+                            Orientation="Horizontal" 
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center">
+                    <TextBlock Text="Clients:" 
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               VerticalAlignment="Center"
+                               Margin="0,0,8,0"/>
+                    <ComboBox x:Name="_clientListMenu" 
+                              x:FieldModifier="private"
+                              Style="{StaticResource DarkModernComboBox}"
+                              Width="200"
+                              SelectedIndex="-1"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Основной список серверов -->
+        <Border Grid.Row="1" 
+        Background="{StaticResource SurfaceDarkBrush}"
+        CornerRadius="8"
+        Padding="1"
+        Effect="{StaticResource ShadowMedium}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Заголовки столбцов -->
+                <Grid Grid.Row="0" 
+              Background="{StaticResource SurfaceDarkBrush}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="300"/>
+                        <ColumnDefinition Width="140"/>
+                        <ColumnDefinition Width="35"/>
+                        <ColumnDefinition Width="35"/>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="50"/>
+                        <ColumnDefinition Width="50"/>
+                        <ColumnDefinition Width="40"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="Name" 
+                       Background="Transparent" Cursor="Hand"
+                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                    <TextBlock Grid.Column="1" Text="IpAddress" 
+                       Background="Transparent" Cursor="Hand"
+                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                    <TextBlock Grid.Column="2" Text="Online" 
+                       Background="Transparent" Cursor="Hand"
+                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                    <TextBlock Grid.Column="3" Text="Max" 
+                       Background="Transparent" Cursor="Hand"
+                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                    <TextBlock Grid.Column="4" Text="Language" 
+                       Background="Transparent" Cursor="Hand"
+                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                    <TextBlock Grid.Column="5" Text="Gamemode" 
+                       Background="Transparent" Cursor="Hand"
+                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                    <TextBlock Grid.Column="6" Text="Lagcomp" 
+                       Background="Transparent" Cursor="Hand"
+                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                    <TextBlock Grid.Column="7" Text="SampCac" 
+                       Background="Transparent" Cursor="Hand"
+                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                    <TextBlock Grid.Column="8" Text="Ping" 
+                       Background="Transparent" Cursor="Hand"
+                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                </Grid>
+
+                <!-- ListView без заголовков -->
+                <ListView Grid.Row="1"
+                  x:Name="_serverListView" 
+                  x:FieldModifier="private"
+                  Style="{StaticResource DarkModernListView}"
+                  ItemsSource="{Binding Source={StaticResource ServerListViewSource}}"
+                  Background="Transparent" 
+                    HorizontalAlignment="Center"
+                  MouseDoubleClick="_serverListView_MouseDoubleClick">
+                    <ListView.Resources>
+                        <Style TargetType="ListViewItem">
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#BB86FC"/>
+                                    <Setter Property="Foreground" Value="Black"/>
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#9977FF"/>
+                                    <Setter Property="Foreground" Value="#111111"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListView.Resources>
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn x:Name="NameColumn" 
+                                   Width="300" 
+                                   DisplayMemberBinding="{Binding Name}"/>
+                            <GridViewColumn x:Name="IpColumn" 
+                                   Width="140" 
+                                   DisplayMemberBinding="{Binding IpAddress}"/>
+                            <GridViewColumn x:Name="PlayersCountColumn" 
+                                   Width="35" 
+                                   DisplayMemberBinding="{Binding PlayersCount}"/>
+                            <GridViewColumn x:Name="MaxPlaeyersColumn" 
+                                    Width="35" 
+                                    DisplayMemberBinding="{Binding MaxPlaeyers}"/>
+                            <GridViewColumn x:Name="LanguageColumn" 
+                                   Width="100" 
+                                   DisplayMemberBinding="{Binding Language}"/>
+                            <GridViewColumn x:Name="GamemodeColumn" 
+                                   Width="150" 
+                                   DisplayMemberBinding="{Binding Gamemode}"/>
+                            <GridViewColumn x:Name="IsLagcompColumn" 
+                                   Width="50" 
+                                   DisplayMemberBinding="{Binding IsLagcomp}"/>
+                            <GridViewColumn x:Name="IsSampCac" 
+                                   Width="50" 
+                                   DisplayMemberBinding="{Binding IsSampCac}"/>
+                            <GridViewColumn x:Name="PingColumn" 
+                                   Width="40" 
+                                   DisplayMemberBinding="{Binding Ping}"/>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </Grid>
+        </Border>
+
+        <!-- Нижняя панель -->
+        <Grid Grid.Row="2" Margin="0,15,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="0.5*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Лог приложения -->
+            <Border Grid.Column="0"
+                    Background="{StaticResource SurfaceDarkBrush}"
+                    CornerRadius="8"
+                    Padding="1"
+                    Effect="{StaticResource ShadowSmall}">
+                <Grid Height="80">
+                    <ListBox x:Name="_logBox" 
+                             x:FieldModifier="private"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             ItemsSource="{Binding LogEntries}"
+                             FontFamily="Consolas"
+                             FontSize="10"
+                             Foreground="{StaticResource TextSecondaryBrush}" MouseDoubleClick="_logBox_MouseDoubleClick">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" 
+                                           TextWrapping="Wrap"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <!-- Кнопка очистки лога -->
+                    <Button x:Name="_clearLog"
+                            x:FieldModifier="private"
+                            Style="{StaticResource DarkModernButton}"
+                            Opacity="0.8"
+                            Content="Clear"
+                            Width="60"
+                            Height="40"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
+                            Margin="0,0,3,3"
+                            Click="_clearLog_Click"
+                            FontSize="8"/>
+                </Grid>
+            </Border>
+
+            <!-- Кнопка обновления по центру -->
+            <Button x:Name="_refreshButton"
+                    x:FieldModifier="private"
+                    Grid.Column="1"
+                    Style="{StaticResource DarkModernButtonPrimary}"
+                    Content="Refresh Servers"
+                    Width="140"
+                    Height="40"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Margin="20,0"
+                    FontWeight="SemiBold" Click="_refreshButton_Click"/>
+
+            <TextBox Grid.Column="2"
+                    Style="{StaticResource WatermarkTextBox}"
+                    Tag="Filter by Hostname"
+                    Background="{StaticResource DarkBackgroundBrush}"
+                    Foreground="{StaticResource TextSecondaryBrush}"
+                    Width="115"
+                    Height="20"
+                    VerticalAlignment="Top"
+                     x:Name="_hostnameFilterInput"
+                     x:FieldModifier="private" TextChanged="_hostnameFilterInput_TextChanged"/>
+
+            <TextBox Grid.Column="2"
+                    Style="{StaticResource WatermarkTextBox}"
+                    Tag="Filter by Gamemode"
+                    Background="{StaticResource DarkBackgroundBrush}"
+                    Foreground="{StaticResource TextSecondaryBrush}"
+                    Width="115"
+                    Height="20"
+                    VerticalAlignment="Center"
+                     x:Name="_gamemodeFilterInput"
+                     x:FieldModifier="private" TextChanged="_gamemodeFilterInput_TextChanged"/>
+            <TextBox Grid.Column="2"
+                    Style="{StaticResource WatermarkTextBox}"
+                    Tag="Filter by Language"
+                    Background="{StaticResource DarkBackgroundBrush}"
+                    Foreground="{StaticResource TextSecondaryBrush}"
+                    Width="115"
+                    Height="20"
+                    VerticalAlignment="Bottom"
+                    x:Name="_languageFilterInput"
+                    x:FieldModifier="private" TextChanged="_languageFilterInput_TextChanged"/>
+            <StackPanel Grid.Column="3"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Right">
+                <Menu Margin="0, 1"
+                      BorderBrush="Transparent"
+                      Background="{StaticResource DarkBackgroundBrush}"
+                      BorderThickness="0.1">
+                    <MenuItem Header="Additional filters"
+                              Background="{StaticResource DarkBackgroundBrush}"
+                              Foreground="{StaticResource TextSecondaryBrush}"
+                              BorderThickness="0.1">
+                        <MenuItem.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Background="{StaticResource DarkBackgroundBrush}"/>
+                            </ItemsPanelTemplate>
+                        </MenuItem.ItemsPanel>
+                        <MenuItem Header="Only skinhit"
+                                  IsCheckable="True"
+                                  Background="{StaticResource DarkBackgroundBrush}"
+                                  Foreground="{StaticResource TextSecondaryBrush}"
+                                  BorderThickness="0.1"
+                                  x:Name="_isOnlyLagcompCheck"
+                                  x:FieldModifier="private" 
+                                  Click="_isOnlyLagcompCheck_Click"/>
+                        <MenuItem Header="Only lagshot"
+                                  IsCheckable="True"
+                                  Margin="0,5"
+                                  Background="{StaticResource DarkBackgroundBrush}"
+                                  Foreground="{StaticResource TextSecondaryBrush}"
+                                  BorderThickness="0.1"
+                                  x:Name="_isOnlyLagshotCheck"
+                                  x:FieldModifier="private" 
+                                  Click="_isOnlyLagshotCheck_Click"/>
+                        <MenuItem Header="Not empty"
+                                  IsCheckable="True"
+                                  Margin="0,5"
+                                  Background="{StaticResource DarkBackgroundBrush}"
+                                  Foreground="{StaticResource TextSecondaryBrush}"
+                                  BorderThickness="0.1"
+                                  x:Name="_isNotEmptyCheck"
+                                  x:FieldModifier="private" 
+                                  Click="_isNotEmptyCheck_Click"/>
+                        <MenuItem Header="Not full"
+                                  IsCheckable="True"
+                                  Margin="0,5"
+                                  Background="{StaticResource DarkBackgroundBrush}"
+                                  Foreground="{StaticResource TextSecondaryBrush}"
+                                  BorderThickness="0.1"
+                                  x:Name="_isNotFullCheck"
+                                  x:FieldModifier="private" Click="_isNotFullCheck_Click"
+                                  />
+                        <MenuItem Header="No password"
+                                  IsCheckable="True"
+                                  Margin="0,5"
+                                  Background="{StaticResource DarkBackgroundBrush}"
+                                  Foreground="{StaticResource TextSecondaryBrush}"
+                                  BorderThickness="0.1"
+                                  x:Name="_isNoPasswordCheck"
+                                  x:FieldModifier="private" Click="_isNoPasswordCheck_Click"/>
+                        <MenuItem Header="Only Open Mp"
+                                  IsCheckable="True"
+                                  Margin="0,5"
+                                  Background="{StaticResource DarkBackgroundBrush}"
+                                  Foreground="{StaticResource TextSecondaryBrush}"
+                                  BorderThickness="0.1"
+                                  x:Name="_isOnlyOpenMpCheck"
+                                  x:FieldModifier="private" Click="_isOnlyOpenMpCheck_Click"/>
+                        <MenuItem Header="Only SAMP"
+                                  IsCheckable="True"
+                                  Margin="0,5"
+                                  Background="{StaticResource DarkBackgroundBrush}"
+                                  Foreground="{StaticResource TextSecondaryBrush}"
+                                  BorderThickness="0.1"
+                                  x:Name="_isOnlySampCheck"
+                                  x:FieldModifier="private" Click="_isOnlySampCheck_Click"/>
+                        <MenuItem Header="Only with SAMPCAC"
+                                  IsCheckable="True"
+                                  Margin="0,5"
+                                  Background="{StaticResource DarkBackgroundBrush}"
+                                  Foreground="{StaticResource TextSecondaryBrush}"
+                                  BorderThickness="0.1"
+                                  x:Name="_isSampCacCheck"
+                                  x:FieldModifier="private" Click="_isSampCacCheck_Click"/>
+                    </MenuItem>
+                </Menu>
+
+            </StackPanel>
+
+            <!-- Информация о версии -->
+            <Border Grid.Column="3"
+                    Background="{StaticResource SurfaceDarkBrush}"
+                    CornerRadius="8"
+                    Padding="5,8"
+                    Width="100"
+                    Height="25"
+                    VerticalAlignment="Bottom"
+                    HorizontalAlignment="Right"
+                    Effect="{StaticResource ShadowSmall}">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Path Data="M25,0 L0,25 L0,0 L25,0" 
+                          Fill="{StaticResource PrimaryBrush}"
+                          Width="10"
+                          Height="5"
+                          Margin="0,0,8,0"
+                          VerticalAlignment="Center"/>
+                    <TextBlock x:Name="_versionLabel"
+                               x:FieldModifier="private"
+                               Text="Version 1.0.0"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               FontSize="11"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
