@@ -4,11 +4,18 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SimpleLauncher.Presentation"
+        xmlns:conv="clr-namespace:SimpleLauncher.Presentation.Converters"
         mc:Ignorable="d"
-        Title="Simple Launcher" Height="608" Width="955" 
-        Background="{StaticResource DarkBackgroundBrush}" MinWidth="580" MinHeight="300" Closing="Window_Closing">
+        Title="Simple Launcher" Height="608" Width="1000" 
+        Background="{StaticResource DarkBackgroundBrush}" 
+        MinWidth="1004" 
+        MinHeight="300" 
+        Closing="Window_Closing">
     <Window.Resources>
         <CollectionViewSource x:Key="ServerListViewSource" Source="{Binding ServerList}"/>
+        <conv:PasswordToLockConverter x:Key="PasswordToLockConverter"/>
+        <conv:LagcompToIconConverter x:Key="LagcompToIconConverter"/>
+        <conv:SampCacToIconConverter x:Key="SampCacToIconConverter"/>
     </Window.Resources>
 
     <Grid Margin="15">
@@ -51,11 +58,36 @@
                                Foreground="{StaticResource TextSecondaryBrush}"
                                VerticalAlignment="Center"
                                Margin="0,0,8,0"/>
-                    <ComboBox x:Name="_monitorListMenu"
-                              x:FieldModifier="private"
-                              Style="{StaticResource DarkModernComboBox}"
-                              Width="200"
-                              SelectedIndex="-1"/>
+                    <Grid Width="200" Height="20">
+                        <ComboBox x:Name="_monitorListMenu"
+                                  x:FieldModifier="private"
+                                  Style="{StaticResource DarkModernComboBox}"
+                                  ItemsSource="{Binding MonitoringServices}"
+                                  DisplayMemberPath="Name"
+                                  SelectionChanged="_monitorListMenu_SelectionChanged"/>
+
+                        <TextBlock x:Name="_monitoringSelectionText"
+			                       x:FieldModifier="private"	
+                                   Text="Выберите систему мониторинга"
+                                   VerticalAlignment="Center"
+                                   Margin="1,0"
+                                   IsHitTestVisible="False"
+                                   Foreground="{StaticResource TextSecondaryBrush}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource DarkModernLabel}">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedItem, ElementName=_monitorListMenu}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding SelectedItem, ElementName=_monitorListMenu}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
                 </StackPanel>
                 <StackPanel Grid.Column="0"
                             Grid.ColumnSpan="5"
@@ -109,11 +141,35 @@
                                Foreground="{StaticResource TextSecondaryBrush}"
                                VerticalAlignment="Center"
                                Margin="0,0,8,0"/>
-                    <ComboBox x:Name="_clientListMenu" 
-                              x:FieldModifier="private"
-                              Style="{StaticResource DarkModernComboBox}"
-                              Width="200"
-                              SelectedIndex="-1"/>
+                    <Grid Width="200" Height="20">
+                        <ComboBox x:Name="_clientListMenu" 
+			                      x:FieldModifier="private"
+			                      Style="{StaticResource DarkModernComboBox}"
+			                      Width="200" SelectionChanged="_clientListMenu_SelectionChanged"
+                                  ItemsSource="{Binding ClientList}"
+                                  DisplayMemberPath="Name"/>
+                        <TextBlock x:Name="_clientListSelectionText"
+                                   x:FieldModifier="private"	
+                                   Text="Выберите установленный клиент samp"
+                                   VerticalAlignment="Center"
+                                   Margin="1,0"
+                                   IsHitTestVisible="False"
+                                   Foreground="{StaticResource TextSecondaryBrush}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource DarkModernLabel}">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedItem, ElementName=_clientListMenu}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding SelectedItem, ElementName=_clientListMenu}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
                 </StackPanel>
             </Grid>
         </Border>
@@ -132,46 +188,56 @@
 
                 <!-- Заголовки столбцов -->
                 <Grid Grid.Row="0" 
-              Background="{StaticResource SurfaceDarkBrush}">
+                    Background="{StaticResource SurfaceDarkBrush}"
+                      HorizontalAlignment="Center"
+                      Height="15">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="300"/>
-                        <ColumnDefinition Width="140"/>
-                        <ColumnDefinition Width="35"/>
-                        <ColumnDefinition Width="35"/>
-                        <ColumnDefinition Width="100"/>
-                        <ColumnDefinition Width="150"/>
-                        <ColumnDefinition Width="50"/>
-                        <ColumnDefinition Width="50"/>
-                        <ColumnDefinition Width="40"/>
+                        <ColumnDefinition MinWidth="300"/>
+                        <ColumnDefinition MinWidth="130"/>
+                        <ColumnDefinition MinWidth="40"/>
+                        <ColumnDefinition MinWidth="40"/>
+                        <ColumnDefinition MinWidth="100"/>
+                        <ColumnDefinition MinWidth="90"/>
+                        <ColumnDefinition MinWidth="60"/>
+                        <ColumnDefinition MinWidth="90"/>
+                        <ColumnDefinition MinWidth="50"/>
                     </Grid.ColumnDefinitions>
-
                     <TextBlock Grid.Column="0" Text="Name" 
                        Background="Transparent" Cursor="Hand"
-                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       HorizontalAlignment="Left" MouseUp="TextBlock_MouseUp"/>
                     <TextBlock Grid.Column="1" Text="IpAddress" 
                        Background="Transparent" Cursor="Hand"
-                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       HorizontalAlignment="Left" MouseUp="TextBlock_MouseUp_1"/>
                     <TextBlock Grid.Column="2" Text="Online" 
                        Background="Transparent" Cursor="Hand"
-                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       HorizontalAlignment="Left" MouseUp="TextBlock_MouseUp_2"/>
                     <TextBlock Grid.Column="3" Text="Max" 
                        Background="Transparent" Cursor="Hand"
-                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       HorizontalAlignment="Left" MouseUp="TextBlock_MouseUp_3"/>
                     <TextBlock Grid.Column="4" Text="Language" 
                        Background="Transparent" Cursor="Hand"
-                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       HorizontalAlignment="Left" MouseUp="TextBlock_MouseUp_4"/>
                     <TextBlock Grid.Column="5" Text="Gamemode" 
                        Background="Transparent" Cursor="Hand"
-                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       HorizontalAlignment="Left" MouseUp="TextBlock_MouseUp_5"/>
                     <TextBlock Grid.Column="6" Text="Lagcomp" 
                        Background="Transparent" Cursor="Hand"
-                       Foreground="{StaticResource TextSecondaryBrush}"/>
-                    <TextBlock Grid.Column="7" Text="SampCac" 
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       HorizontalAlignment="Left" MouseUp="TextBlock_MouseUp_6"/>
+                    <TextBlock Grid.Column="7" Text="Version" 
                        Background="Transparent" Cursor="Hand"
-                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       HorizontalAlignment="Left" MouseUp="TextBlock_MouseUp_7"/>
                     <TextBlock Grid.Column="8" Text="Ping" 
                        Background="Transparent" Cursor="Hand"
-                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       HorizontalAlignment="Left" MouseUp="TextBlock_MouseUp_8"/>
                 </Grid>
 
                 <!-- ListView без заголовков -->
@@ -181,7 +247,7 @@
                   Style="{StaticResource DarkModernListView}"
                   ItemsSource="{Binding Source={StaticResource ServerListViewSource}}"
                   Background="Transparent" 
-                    HorizontalAlignment="Center"
+                  HorizontalAlignment="Center"
                   MouseDoubleClick="_serverListView_MouseDoubleClick">
                     <ListView.Resources>
                         <Style TargetType="ListViewItem">
@@ -199,8 +265,18 @@
                     </ListView.Resources>
                     <ListView.View>
                         <GridView>
+                            <GridViewColumn x:Name="PassColumn" Width="20">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding HasPassword, Converter={StaticResource PasswordToLockConverter}}"
+                                                   FontSize="10"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
                             <GridViewColumn x:Name="NameColumn" 
-                                   Width="300" 
+                                   Width="280" 
                                    DisplayMemberBinding="{Binding Name}"/>
                             <GridViewColumn x:Name="IpColumn" 
                                    Width="140" 
@@ -215,14 +291,21 @@
                                    Width="100" 
                                    DisplayMemberBinding="{Binding Language}"/>
                             <GridViewColumn x:Name="GamemodeColumn" 
-                                   Width="150" 
+                                   Width="100" 
                                    DisplayMemberBinding="{Binding Gamemode}"/>
-                            <GridViewColumn x:Name="IsLagcompColumn" 
-                                   Width="50" 
-                                   DisplayMemberBinding="{Binding IsLagcomp}"/>
-                            <GridViewColumn x:Name="IsSampCac" 
-                                   Width="50" 
-                                   DisplayMemberBinding="{Binding IsSampCac}"/>
+                            <GridViewColumn x:Name="IsLagcompColumn" Width="40">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding IsLagcomp, Converter={StaticResource LagcompToIconConverter}}"
+                                                   FontSize="10"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn x:Name="VersionColumn"
+                                   Width="100" 
+                                   DisplayMemberBinding="{Binding Version}"/>
                             <GridViewColumn x:Name="PingColumn" 
                                    Width="40" 
                                    DisplayMemberBinding="{Binding Ping}"/>
@@ -282,6 +365,39 @@
                 </Grid>
             </Border>
 
+            <StackPanel Orientation="Horizontal"
+                        Grid.Column="1">
+                <Button x:Name="_allButton"
+                        x:FieldModifier="private"
+                        Background="{StaticResource DarkBackgroundBrush}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Content="All"
+                        Width="50"
+                        Height="20"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Margin="5, 5" Click="_allButton_Click"/>
+                <Button x:Name="_favoritesButton"
+                        x:FieldModifier="private"
+                        Background="{StaticResource DarkBackgroundBrush}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Content="Favorites"
+                        Width="51"
+                        Height="20"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Margin="5, 5" Click="_favoritesButton_Click"/>
+                <Button x:Name="_historyButton"
+                        x:FieldModifier="private"
+                        Background="{StaticResource DarkBackgroundBrush}"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Content="History"
+                        Width="50"
+                        Height="20"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Margin="5, 5" Click="_historyButton_Click"/>
+            </StackPanel>
             <!-- Кнопка обновления по центру -->
             <Button x:Name="_refreshButton"
                     x:FieldModifier="private"
@@ -291,8 +407,8 @@
                     Width="140"
                     Height="40"
                     HorizontalAlignment="Right"
-                    VerticalAlignment="Center"
-                    Margin="20,0"
+                    VerticalAlignment="Bottom"
+                    Margin="20,5"
                     FontWeight="SemiBold" Click="_refreshButton_Click"/>
 
             <TextBox Grid.Column="2"

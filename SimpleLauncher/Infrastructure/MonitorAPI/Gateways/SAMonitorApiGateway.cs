@@ -16,9 +16,13 @@ namespace SimpleLauncher.Infrastructure.MonitorAPI.Gateways
     /// </summary>
     class SAMonitorApiGateway : IMonitoringApiGateway
     {
+        private const string GatewayName = "SAMonitor";
+
+        public string Name { get; } = GatewayName;
         private readonly Uri? _uri;
         private readonly HttpClient? _httpClient;
         private readonly ILogger<SAMonitorApiGateway> _logger;
+        
         public SAMonitorApiGateway(HttpClient httpClient,
             IConfiguration configuration,
             ILogger<SAMonitorApiGateway> logger)
@@ -35,6 +39,7 @@ namespace SimpleLauncher.Infrastructure.MonitorAPI.Gateways
             }
             _httpClient = httpClient;
         }
+        public string GetName() => GatewayName;
         public async Task<List<ServerMeta>?> GetServers(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

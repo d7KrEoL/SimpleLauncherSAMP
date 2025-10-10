@@ -49,7 +49,7 @@
                    Foreground="{StaticResource TextSecondaryBrush}"
                    Content="127.100.100.51:7777"
                    x:Name="_serverIpLabel"
-                   x:FieldModifier="private"/>
+                   x:FieldModifier="private" MouseDoubleClick="_serverIpLabel_MouseDoubleClick"/>
             <Label Grid.Column="0"
                    Grid.Row="2"
                    HorizontalContentAlignment="Center"
@@ -181,6 +181,7 @@
                 Padding="10,0"
                 FontSize="13"
                 Content="Connect"
+                IsEnabled="False"
                 x:Name="_connectButton"
                 x:FieldModifier="private" Click="_connectButton_Click"/>
             <Button Grid.Column="1"

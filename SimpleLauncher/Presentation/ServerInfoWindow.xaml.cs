@@ -3,14 +3,12 @@ using Microsoft.Win32;
 using SimpleLauncher.Domain.Abstractions;
 using SimpleLauncher.Domain.Models;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Net.NetworkInformation;
 using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Media;
 
 namespace SimpleLauncher.Presentation
@@ -21,8 +19,9 @@ namespace SimpleLauncher.Presentation
         private const double PlayerListCompactModeThreshold = 240;
         private readonly ILogService _logService;
         private readonly ILogger<ServerInfoWindow> _logger;
-        private readonly ISampQueryAdapter _queryAdapter;
-        private double _lastPlayerListViewWidth = 0;
+        private readonly IServerListService _serverListService;
+        private readonly IConfigurationService _configurationService;
+        private string _playerNickname = "Unnamed";
         private CancellationTokenSource? _pingCancellationTokenSource;
         private ObservableCollection<PlayerMeta> _players = new ObservableCollection<PlayerMeta>();
         private ServerMeta _serverInfo;
@@ -31,22 +30,26 @@ namespace SimpleLauncher.Presentation
         private Point[] _printPoints = new Point[DrawnablePointsCount];
         public ServerInfoWindow(ILogService logService, 
             ILogger<ServerInfoWindow> logger, 
-            ISampQueryAdapter queryAdapter)
+            IServerListService serverListService,
+            IConfigurationService configurationService)
         {
             _logService = logService;
             _logger = logger;
-            _queryAdapter = queryAdapter;
+            _serverListService = serverListService;
             _players.Add(new PlayerMeta(0, "Loading...", 0, 0));
             _ = ServerPingCanvasInit();
             ServerPlayersListView_SizeChanged(_serverPlayersListView, null);
             InitializeComponent();
             _serverPlayersListView.ItemsSource = _players;
+            _configurationService = configurationService;
         }
         public async Task Configure(ServerMeta serverInfo,
             List<PlayerMeta> playersInfo,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            string playerNickname)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            _playerNickname = playerNickname;
             await UpdateInfoAsync(serverInfo, playersInfo);
             await Task.Run(() =>
             {
@@ -58,6 +61,13 @@ namespace SimpleLauncher.Presentation
                     _pingCancellationTokenSource = new CancellationTokenSource();
                 }
                 _ = ServerPingUpdater(_pingCancellationTokenSource.Token);
+            });
+        }
+        public async Task UpdateNickname(string newNickname)
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                _playerNickname = newNickname;
             });
         }
         private async Task UpdateInfoAsync(ServerMeta serverInfo,
@@ -80,7 +90,20 @@ namespace SimpleLauncher.Presentation
                 {
                     _players.Add(player);
                 }
+                if (!_players.Any())
+                    _players.Add(new PlayerMeta(0, "No players online", 0, 0));
                 _serverPlayersListView.SelectedIndex = selectedValue;
+                var listViewMessage = _serverPlayersListView.Items[0] as PlayerMeta;
+                if (_serverPingLabel.Content.Equals("Ping: 0") &&
+                    listViewMessage is not null &&
+                    listViewMessage.Name.Equals("Cannot connect"))
+                {
+                    _connectButton.IsEnabled = false;
+                }
+                else
+                {
+                    _connectButton.IsEnabled = true;
+                }
             });
         }
 
@@ -92,26 +115,39 @@ namespace SimpleLauncher.Presentation
                 !_gameProcess.CloseMainWindow())
                 _gameProcess.Kill();
         }
-
+        /*
+            -c rcon_password
+            -n player name
+            -h server ip
+            -p server port
+            -z server password
+            -d debug */
         private void _connectButton_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 var clientPath = FindSampPathInRegistry();
-                var ipPort = _serverInfo.IpAddress.Split(':');
+                string args;
+                if (string.IsNullOrWhiteSpace(_serverPasswordInput.Password))
+                    args = $"{_serverInfo.IpAddress} -n{_playerNickname}";
+                else
+                    args = $"{_serverInfo.IpAddress} -n{_playerNickname} -z{_serverPasswordInput.Password}";
+                _logger.LogInformation("Starting game with {ARGS}", args);
                 _gameProcess = Process.Start(new ProcessStartInfo
                 {
                     FileName = $"{Path.GetFileName(clientPath)}",
-                    //  Arguments = $"-i {ipPort[0]} -p {ipPort[1]}",
-                    Arguments = _serverInfo.IpAddress,
+                    Arguments = args,
                     WorkingDirectory = Path.GetDirectoryName(clientPath),
                     UseShellExecute = true
                 });
+                _logger.LogInformation("Starting game: {GAME}", 
+                    _gameProcess?.MainWindowTitle);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Cannot start samp instance");
             }
+            _configurationService.AddValueToArray("ServerList:LastConnected", _serverInfo.IpAddress);
         }
 
         private void _saveButton_Click(object sender, RoutedEventArgs e)
@@ -225,12 +261,12 @@ namespace SimpleLauncher.Presentation
                     stopQueryTokenSource = new CancellationTokenSource();
                     if (infoPlayerList)
                         _serverInfo =
-                            await _queryAdapter.GetServerInfoAsync(_serverInfo.IpAddress,
-                            stopQueryTokenSource.Token);
+                            await _serverListService.GetServerInfoAsync(_serverInfo.IpAddress,
+                            stopQueryTokenSource.Token) ?? _serverInfo;
                     else
                         _playersInfo =
-                            await _queryAdapter.GetServerPlayersAsync(_serverInfo.IpAddress,
-                            stopQueryTokenSource.Token);
+                            await _serverListService.GetServerPlayersAsync(_serverInfo.IpAddress,
+                            stopQueryTokenSource.Token) ?? _playersInfo;
                     await Task.Delay(TimeSpan.FromMilliseconds(PingTimeoutMilliseconds / 3));
                     uint pingValue = 0;
                     using (var ping = new Ping())
@@ -297,6 +333,13 @@ namespace SimpleLauncher.Presentation
         private void _serverPlayersListView_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             Clipboard.SetText(_players[_serverPlayersListView.SelectedIndex].Name);
+        }
+
+        private void _serverIpLabel_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            var text = _serverIpLabel.Content.ToString();
+            if (text is not null)
+                Clipboard.SetText(text);
         }
     }
 }

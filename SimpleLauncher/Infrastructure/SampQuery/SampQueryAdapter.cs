@@ -52,7 +52,9 @@ namespace SimpleLauncher.Infrastructure.SampQuery
         private static ushort GetPortFromStringOrDefault(string ip)
         {
             var parts = ip.Split(':');
-            return parts.Length > 1 ? string.IsNullOrWhiteSpace(parts[1]) ? DefaultServerPort : ushort.Parse(parts[1]) : DefaultServerPort;
+            return parts.Length > 1 ? 
+                string.IsNullOrWhiteSpace(parts[1]) ? 
+                DefaultServerPort : ushort.Parse(parts[1]) : DefaultServerPort;
         }
 
         private async Task<byte[]> SendSocketToServerAsync(char packetType, IPEndPoint serverEndPoint)

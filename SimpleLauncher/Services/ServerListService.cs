@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using SimpleLauncher.Domain.Abstractions;
 using SimpleLauncher.Domain.Models;
+using System.Net;
 
 namespace SimpleLauncher.Services
 {
@@ -9,8 +10,8 @@ namespace SimpleLauncher.Services
         public const ushort MinPortValue = 1000;
         public const ushort MaxPortValue = 9999;
         private readonly ILogger<ServerListService> _logger;
-        private readonly IMonitoringApiGateway _monitoringApiGateway;
         private readonly ISampQueryAdapter _sampQueryAdapter;
+        private IMonitoringApiGateway _monitoringApiGateway;
         public ServerListService(ILogger<ServerListService> logger,
             IMonitoringApiGateway monitoringApiGateway,
             ISampQueryAdapter sampQueryAdapter) 
@@ -19,7 +20,12 @@ namespace SimpleLauncher.Services
             _monitoringApiGateway = monitoringApiGateway;
             _sampQueryAdapter = sampQueryAdapter;
         }
-        public async Task<List<ServerMeta>?> GetServers(CancellationToken cancellationToken)
+        public async Task UpdateMonitoringGatewayAsync(IMonitoringApiGateway monitoringApiGateway)
+        {
+            _monitoringApiGateway = monitoringApiGateway;
+            await Task.CompletedTask;
+        }
+        public async Task<List<ServerMeta>?> GetServersAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var servers = await _monitoringApiGateway.GetServers(cancellationToken);
@@ -27,16 +33,21 @@ namespace SimpleLauncher.Services
                 return servers;
             return servers;
         }
-        public async Task<ServerMeta?> GetServerInfo(string ipAddress, 
-            ushort port, 
+        public async Task<ServerMeta?> GetServerInfoAsync(string ipAddress,
+            ushort port,
+            CancellationToken cancellationToken)
+        {
+            if (!IpAndPortValidator(ipAddress, port))
+                return null;
+            return await GetServerInfoAsync($"{ipAddress}:{port}", cancellationToken);
+        }
+        public async Task<ServerMeta?> GetServerInfoAsync(string ipAddressAndPort,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (!IpAndPortValidator(ipAddress, port))
-                return null;
-            return await _monitoringApiGateway.GetServerInfo(ipAddress, port, cancellationToken);
+            return await _sampQueryAdapter.GetServerInfoAsync(ipAddressAndPort, cancellationToken);
         }
-        public async Task<ServerMeta?> UpdateServerInfo(string ipAddress, 
+        public async Task<ServerMeta?> UpdateServerInfoAsync(string ipAddress, 
             ushort port, 
             CancellationToken cancellationToken)
         {
@@ -45,14 +56,20 @@ namespace SimpleLauncher.Services
                 return null;
             return await _sampQueryAdapter.GetFullServerInfoAsync(ipAddress, port, cancellationToken);
         }
-        public async Task<List<PlayerMeta>?> GetServerPlayers(string ipAddress, 
+        public async Task<List<PlayerMeta>?> GetServerPlayersAsync(string ipAddressAndPort, 
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return await _sampQueryAdapter.GetServerPlayersAsync(ipAddressAndPort, cancellationToken);
+        }
+        public async Task<List<PlayerMeta>?> GetServerPlayersAsync(string ipAddress, 
             ushort port, 
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (!IpAndPortValidator(ipAddress, port))
                 return null;
-            return await _sampQueryAdapter.GetServerPlayersAsync(ipAddress, port, cancellationToken);
+            return await GetServerPlayersAsync($"{ipAddress}:{port}", cancellationToken);
         }
         private static bool IpAndPortValidator(string ipAddress, 
             ushort port)

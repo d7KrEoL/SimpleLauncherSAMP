@@ -11,6 +11,7 @@ namespace SimpleLauncher.Configuration
 {
     static class ConfigureServices
     {
+        private const string ConfigurationFilePath = "settings.json";
         public static void Configure(IServiceCollection collection)
         {
             AddConfiguration(collection);
@@ -22,8 +23,10 @@ namespace SimpleLauncher.Configuration
         private static void AddConfiguration(IServiceCollection collection)
         {
             var configuration = new ConfigurationBuilder()
-               .AddJsonFile("settings.json")
-               .Build();
+                .AddJsonFile(ConfigurationFilePath, 
+                    optional: false, 
+                    reloadOnChange: true)
+                .Build();
             collection.AddSingleton<IConfiguration>(configuration);
         }
         private static void AddInfrastructureServices(IServiceCollection collection)
@@ -36,9 +39,16 @@ namespace SimpleLauncher.Configuration
             });
             collection.AddScoped<ISampQueryAdapter, SampQueryAdapter>();
             collection.AddScoped<IMonitoringApiGateway, SAMonitorApiGateway>();
+            collection.AddScoped<IMonitoringApiGateway, OpenMpMonigorApiGateway>();
         }
         private static void AddApplicationServices(IServiceCollection collection)
         {
+            collection.AddScoped<IConfigurationService>(provider =>
+            {
+                var configuration = provider.GetRequiredService<IConfiguration>();
+                var configFilePath = ConfigurationFilePath;
+                return new ConfigurationService(configuration, configFilePath);
+            });
             collection.AddScoped<IServerListService, ServerListService>();
         }
         private static void AddLoggingServices(IServiceCollection collection)
