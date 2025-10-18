@@ -20,8 +20,8 @@ namespace SimpleLauncher.Presentation
         private readonly ILogger<ServerInfoWindow> _logger;
         private readonly IServerListService _serverListService;
         private readonly IConfigurationService _configurationService;
-        private event MainWindow.AddFavoriteServerEventHandler? _addFavoritesEvent;
-        private event MainWindow.AddHistoryServerEventHandler? _addHistoryEvent;
+        private event AddFavoriteServerEventHandler? _addFavoritesEvent;
+        private event AddHistoryServerEventHandler? _addHistoryEvent;
         private string _playerNickname = "Unnamed";
         private CancellationTokenSource? _pingCancellationTokenSource;
         private ObservableCollection<PlayerMeta> _players = new ObservableCollection<PlayerMeta>();
@@ -48,8 +48,8 @@ namespace SimpleLauncher.Presentation
             List<PlayerMeta> playersInfo,
             CancellationToken cancellationToken,
             string playerNickname,
-            MainWindow.AddFavoriteServerEventHandler? onAddFavoriteServer,
-            MainWindow.AddHistoryServerEventHandler? onAddHistoryServer)
+            AddFavoriteServerEventHandler? onAddFavoriteServer,
+            AddHistoryServerEventHandler? onAddHistoryServer)
         {
             cancellationToken.ThrowIfCancellationRequested();
             _playerNickname = playerNickname;
@@ -166,14 +166,14 @@ namespace SimpleLauncher.Presentation
         {
             _addHistoryEvent?.Invoke(sender, 
                 _serverInfo.IpAddress, 
-                MainWindow.AddFavoriteOrHistoryOperationResult.Success);
+                AddFavoriteOrHistoryOperationResult.Success);
         }
 
         private void _saveFavoritesButton_Click(object sender, RoutedEventArgs e)
         {
             _addFavoritesEvent?.Invoke(sender,
                 _serverInfo.IpAddress,
-                MainWindow.AddFavoriteOrHistoryOperationResult.Success);
+                AddFavoriteOrHistoryOperationResult.Success);
         }
 
         private void _closeButton_Click(object sender, RoutedEventArgs e)

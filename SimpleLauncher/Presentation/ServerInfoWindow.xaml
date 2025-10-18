@@ -44,7 +44,7 @@
                    HorizontalAlignment="Center" 
                    Foreground="{StaticResource TextPrimaryBrush}"
                    FontSize="18"
-                   Content="Russian Drift Server 127"
+                   Content="Loading..."
                    x:Name="_serverNameLabel"
                    x:FieldModifier="private"/>
             <Label Grid.Column="1"
@@ -52,7 +52,7 @@
                    HorizontalContentAlignment="Center"
                    FontSize="16"
                    Foreground="{StaticResource TextSecondaryBrush}"
-                   Content="127.100.100.51:7777"
+                   Content="Loading..."
                    x:Name="_serverIpLabel"
                    x:FieldModifier="private" MouseDoubleClick="_serverIpLabel_MouseDoubleClick"/>
             <Label Grid.Column="0"

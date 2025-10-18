@@ -4,13 +4,18 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SimpleLauncher.Presentation"
+        xmlns:viewmodels="clr-namespace:SimpleLauncher.Presentation.ViewModels"
         xmlns:conv="clr-namespace:SimpleLauncher.Presentation.Converters"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         Title="Simple Launcher" Height="608" Width="1000" 
         Background="{StaticResource DarkBackgroundBrush}" 
         MinWidth="1004" 
         MinHeight="300" 
         Closing="Window_Closing">
+    <Window.DataContext>
+        <viewmodels:MainWindowViewModel />
+    </Window.DataContext>
     <Window.Resources>
         <CollectionViewSource x:Key="ServerListViewSource" Source="{Binding ServerList}"/>
         <conv:PasswordToLockConverter x:Key="PasswordToLockConverter"/>
@@ -43,9 +48,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="20"/>
                     <RowDefinition Height="10"/>
-                    <RowDefinition Height="20"
-                                   x:Name="_extraPanel"
-                                   x:FieldModifier="private"/>
+                    <RowDefinition Height="20"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
@@ -59,34 +62,15 @@
                                VerticalAlignment="Center"
                                Margin="0,0,8,0"/>
                     <Grid Width="200" Height="20">
-                        <ComboBox x:Name="_monitorListMenu"
-                                  x:FieldModifier="private"
-                                  Style="{StaticResource DarkModernComboBox}"
+                        <ComboBox Style="{StaticResource DarkModernComboBox}"
                                   ItemsSource="{Binding MonitoringServices}"
                                   DisplayMemberPath="Name"
-                                  SelectionChanged="_monitorListMenu_SelectionChanged"/>
-
-                        <TextBlock x:Name="_monitoringSelectionText"
-			                       x:FieldModifier="private"	
-                                   Text="Выберите систему мониторинга"
+                                  SelectedItem="{Binding SelectedMonitoringService, Mode=TwoWay}"/>
+                        <TextBlock Text="{Binding SelectedMonitoringService.Name, FallbackValue=Выберите систему мониторинга}"
                                    VerticalAlignment="Center"
                                    Margin="1,0"
                                    IsHitTestVisible="False"
-                                   Foreground="{StaticResource TextSecondaryBrush}">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock" BasedOn="{StaticResource DarkModernLabel}">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SelectedItem, ElementName=_monitorListMenu}" Value="{x:Null}">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding SelectedItem, ElementName=_monitorListMenu}" Value="{x:Null}">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
+                                   Foreground="{StaticResource TextSecondaryBrush}"/>
                     </Grid>
                 </StackPanel>
                 <StackPanel Grid.Column="0"
@@ -98,9 +82,8 @@
                             BorderBrush="Transparent"
                             Padding="-15"
                             FontSize="15"
-                            Content="↑" Click="_hideExtraMenuButton_Click"
-                            x:Name="_hideExtraMenuButton"
-                            x:FieldModifier="private"/>
+                            Content="↑"
+                            Command="{Binding HideExtraMenuCommand}"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="0"
@@ -108,19 +91,15 @@
                             Orientation="Horizontal"
                             VerticalAlignment="Center">
                     <TextBlock Foreground="{StaticResource TextSecondaryBrush}"
-                                Text="Nickname: "
+                                Text="{Binding Nickname, UpdateSourceTrigger=PropertyChanged}"
                                 Width="80"
-                                HorizontalAlignment="Center"
-                                x:Name="_nickNameTextBlock"
-                                x:FieldModifier="private"/>
+                                HorizontalAlignment="Center"/>
                     <TextBox Background="{StaticResource DarkBackgroundBrush}"
                              Foreground="{StaticResource TextSecondaryBrush}"
-                             Text="Nickname"
+                             Text="{Binding Nickname, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              HorizontalAlignment="Center"
                              Width="170"
-                             Height="20"
-                             x:Name="_nicknameInput"
-                             x:FieldModifier="private"/>
+                             Height="20"/>
                 </StackPanel>
 
                 <!-- Заголовок по центру -->
@@ -138,9 +117,7 @@
                         Content="Add new server"
                         Width="150"
                         HorizontalAlignment="Center"
-                        x:Name="_addFavoritesButton"
-                        x:FieldModifier="private" 
-                        Click="_addFavoritesButton_Click"/>
+                        Command="{Binding AddFavoriteCommand}"/>
 
                 <!-- Правое меню -->
                 <StackPanel Grid.Column="4" 
@@ -152,33 +129,16 @@
                                VerticalAlignment="Center"
                                Margin="0,0,8,0"/>
                     <Grid Width="200" Height="20">
-                        <ComboBox x:Name="_clientListMenu" 
-			                      x:FieldModifier="private"
-			                      Style="{StaticResource DarkModernComboBox}"
-			                      Width="200" SelectionChanged="_clientListMenu_SelectionChanged"
+                        <ComboBox Style="{StaticResource DarkModernComboBox}"
+                                  Width="200"
                                   ItemsSource="{Binding ClientList}"
-                                  DisplayMemberPath="Name"/>
-                        <TextBlock x:Name="_clientListSelectionText"
-                                   x:FieldModifier="private"	
-                                   Text="Выберите установленный клиент samp"
+                                  DisplayMemberPath="Name"
+                                  SelectedItem="{Binding SelectedClient, Mode=TwoWay}"/>
+                        <TextBlock Text="{Binding SelectedClient.Name, FallbackValue=Выберите установленный клиент samp}"
                                    VerticalAlignment="Center"
                                    Margin="1,0"
                                    IsHitTestVisible="False"
-                                   Foreground="{StaticResource TextSecondaryBrush}">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock" BasedOn="{StaticResource DarkModernLabel}">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SelectedItem, ElementName=_clientListMenu}" Value="{x:Null}">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding SelectedItem, ElementName=_clientListMenu}" Value="{x:Null}">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
+                                   Foreground="{StaticResource TextSecondaryBrush}"/>
                     </Grid>
                 </StackPanel>
             </Grid>
@@ -215,50 +175,107 @@
                     <TextBlock Grid.Column="0" Text="Name" 
                        Background="Transparent" Cursor="Hand"
                        Foreground="{StaticResource TextSecondaryBrush}"
-                       HorizontalAlignment="Left" MouseUp="TextBlock_MouseUp"/>
+                       HorizontalAlignment="Left">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="MouseLeftButtonUp">
+                                <i:InvokeCommandAction Command="{Binding SortCommand}" CommandParameter="Name" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </TextBlock>
                     <TextBlock Grid.Column="1" Text="IpAddress" 
                        Background="Transparent" Cursor="Hand"
                        Foreground="{StaticResource TextSecondaryBrush}"
-                       HorizontalAlignment="Left" MouseUp="TextBlock_MouseUp_1"/>
+                       HorizontalAlignment="Left">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="MouseLeftButtonUp">
+                                <i:InvokeCommandAction Command="{Binding SortCommand}" CommandParameter="IpAddress" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </TextBlock>
                     <TextBlock Grid.Column="2" Text="Online" 
                        Background="Transparent" Cursor="Hand"
                        Foreground="{StaticResource TextSecondaryBrush}"
-                       HorizontalAlignment="Left" MouseUp="TextBlock_MouseUp_2"/>
+                       HorizontalAlignment="Left">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="MouseLeftButtonUp">
+                                <i:InvokeCommandAction Command="{Binding SortCommand}" CommandParameter="PlayersCount" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </TextBlock>
                     <TextBlock Grid.Column="3" Text="Max" 
                        Background="Transparent" Cursor="Hand"
                        Foreground="{StaticResource TextSecondaryBrush}"
-                       HorizontalAlignment="Left" MouseUp="TextBlock_MouseUp_3"/>
+                       HorizontalAlignment="Left">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="MouseLeftButtonUp">
+                                <i:InvokeCommandAction Command="{Binding SortCommand}" CommandParameter="MaxPlaeyers" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </TextBlock>
                     <TextBlock Grid.Column="4" Text="Language" 
                        Background="Transparent" Cursor="Hand"
                        Foreground="{StaticResource TextSecondaryBrush}"
-                       HorizontalAlignment="Left" MouseUp="TextBlock_MouseUp_4"/>
+                       HorizontalAlignment="Left">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="MouseLeftButtonUp">
+                                <i:InvokeCommandAction Command="{Binding SortCommand}" CommandParameter="Language" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </TextBlock>
                     <TextBlock Grid.Column="5" Text="Gamemode" 
                        Background="Transparent" Cursor="Hand"
                        Foreground="{StaticResource TextSecondaryBrush}"
-                       HorizontalAlignment="Left" MouseUp="TextBlock_MouseUp_5"/>
+                       HorizontalAlignment="Left">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="MouseLeftButtonUp">
+                                <i:InvokeCommandAction Command="{Binding SortCommand}" CommandParameter="Gamemode" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </TextBlock>
                     <TextBlock Grid.Column="6" Text="Lagcomp" 
                        Background="Transparent" Cursor="Hand"
                        Foreground="{StaticResource TextSecondaryBrush}"
-                       HorizontalAlignment="Left" MouseUp="TextBlock_MouseUp_6"/>
+                       HorizontalAlignment="Left">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="MouseLeftButtonUp">
+                                <i:InvokeCommandAction Command="{Binding SortCommand}" CommandParameter="IsLagcomp" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </TextBlock>
                     <TextBlock Grid.Column="7" Text="Version" 
                        Background="Transparent" Cursor="Hand"
                        Foreground="{StaticResource TextSecondaryBrush}"
-                       HorizontalAlignment="Left" MouseUp="TextBlock_MouseUp_7"/>
+                       HorizontalAlignment="Left">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="MouseLeftButtonUp">
+                                <i:InvokeCommandAction Command="{Binding SortCommand}" CommandParameter="Version" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </TextBlock>
                     <TextBlock Grid.Column="8" Text="Ping" 
                        Background="Transparent" Cursor="Hand"
                        Foreground="{StaticResource TextSecondaryBrush}"
-                       HorizontalAlignment="Left" MouseUp="TextBlock_MouseUp_8"/>
+                       HorizontalAlignment="Left">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="MouseLeftButtonUp">
+                                <i:InvokeCommandAction Command="{Binding SortCommand}" CommandParameter="Ping" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </TextBlock>
                 </Grid>
 
                 <!-- ListView без заголовков -->
                 <ListView Grid.Row="1"
-                  x:Name="_serverListView" 
-                  x:FieldModifier="private"
                   Style="{StaticResource DarkModernListView}"
                   ItemsSource="{Binding Source={StaticResource ServerListViewSource}}"
                   Background="Transparent" 
                   HorizontalAlignment="Center"
-                  MouseDoubleClick="_serverListView_MouseDoubleClick">
+                  SelectedItem="{Binding SelectedServer, Mode=TwoWay}">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="MouseDoubleClick">
+                            <i:InvokeCommandAction Command="{Binding ServerDoubleClickCommand}" />
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
                     <ListView.Resources>
                         <Style TargetType="ListViewItem">
                             <Style.Triggers>
@@ -342,28 +359,23 @@
                     Padding="1"
                     Effect="{StaticResource ShadowSmall}" Grid.ColumnSpan="2" Margin="0,0,181,0">
                 <Grid Height="80">
-                    <ListBox x:Name="_logBox" 
-                             x:FieldModifier="private"
-                             Background="Transparent"
+                    <ListBox Background="Transparent"
                              BorderThickness="0"
                              ItemsSource="{Binding LogEntries}"
                              FontFamily="Consolas"
                              FontSize="10"
-                             Foreground="{StaticResource TextSecondaryBrush}" MouseDoubleClick="_logBox_MouseDoubleClick">
+                             Foreground="{StaticResource TextSecondaryBrush}">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding}" 
                                            TextWrapping="Wrap"
-                                           Foreground="{StaticResource TextSecondaryBrush}"
-                                           />
+                                           Foreground="{StaticResource TextSecondaryBrush}"/>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
 
                     <!-- Кнопка очистки лога -->
-                    <Button x:Name="_clearLog"
-                            x:FieldModifier="private"
-                            Style="{StaticResource DarkModernButton}"
+                    <Button Style="{StaticResource DarkModernButton}"
                             Opacity="0.8"
                             Content="Clear"
                             Width="60"
@@ -371,48 +383,43 @@
                             HorizontalAlignment="Right"
                             VerticalAlignment="Bottom"
                             Margin="0,0,3,3"
-                            Click="_clearLog_Click"
+                            Command="{Binding ClearLogCommand}"
                             FontSize="8"/>
                 </Grid>
             </Border>
 
             <StackPanel Orientation="Horizontal"
                         Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,36,0">
-                <Button x:Name="_allButton"
-                        x:FieldModifier="private"
-                        Background="{StaticResource DarkBackgroundBrush}"
+                <Button Background="{StaticResource DarkBackgroundBrush}"
                         Foreground="{StaticResource TextSecondaryBrush}"
                         Content="All"
                         Width="50"
                         Height="20"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
-                        Margin="5, 5" Click="_allButton_Click"/>
-                <Button x:Name="_favoritesButton"
-                        x:FieldModifier="private"
-                        Background="{StaticResource DarkBackgroundBrush}"
+                        Margin="5, 5" 
+                        Command="{Binding SwitchAllCommand}"/>
+                <Button Background="{StaticResource DarkBackgroundBrush}"
                         Foreground="{StaticResource TextSecondaryBrush}"
                         Content="Favorites"
                         Width="51"
                         Height="20"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
-                        Margin="5, 5" Click="_favoritesButton_Click"/>
-                <Button x:Name="_historyButton"
-                        x:FieldModifier="private"
-                        Background="{StaticResource DarkBackgroundBrush}"
+                        Margin="5, 5" 
+                        Command="{Binding SwitchFavoritesCommand}"/>
+                <Button Background="{StaticResource DarkBackgroundBrush}"
                         Foreground="{StaticResource TextSecondaryBrush}"
                         Content="History"
                         Width="50"
                         Height="20"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
-                        Margin="5, 5" Click="_historyButton_Click"/>
+                        Margin="5, 5" 
+                        Command="{Binding SwitchHistoryCommand}"/>
             </StackPanel>
             <!-- Кнопка обновления по центру -->
-            <Button x:Name="_refreshButton"
-                    x:FieldModifier="private"
-                    Grid.Column="1"
+            <Button Grid.Column="1"
                     Style="{StaticResource DarkModernButtonPrimary}"
                     Content="Refresh Servers"
                     Width="140"
@@ -420,7 +427,8 @@
                     HorizontalAlignment="Center"
                     VerticalAlignment="Top"
                     Margin="0,37,0,0"
-                    FontWeight="SemiBold" Click="_refreshButton_Click"/>
+                    FontWeight="SemiBold" 
+                    Command="{Binding RefreshCommand}"/>
 
             <TextBox Grid.Column="2"
                     Style="{StaticResource WatermarkTextBox}"
@@ -431,19 +439,15 @@
                     Height="20"
                     VerticalAlignment="Top"
                     HorizontalAlignment="Left"
-                     x:Name="_hostnameFilterInput"
-                     x:FieldModifier="private" TextChanged="_hostnameFilterInput_TextChanged" Grid.ColumnSpan="2"/>
+                    Text="{Binding HostnameFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             <CheckBox Grid.Column="2"
                       Background="{StaticResource DarkBackgroundBrush}"
                       Foreground="{StaticResource TextSecondaryBrush}"
-                      IsChecked="False"
+                      IsChecked="{Binding IsInvertedHostname, Mode=TwoWay}"
                       Height="20"
                       HorizontalAlignment="Right"
                       VerticalAlignment="Top"
-                      Content="Invert"
-                      x:Name="_isInvertedHostname"
-                      x:FieldModifier="private" Checked="_isInvertedHostname_Checked" Unchecked="_isInvertedHostname_Unchecked" 
-                      />
+                      Content="Invert"/>
 
             <TextBox Grid.Column="2"
                     Style="{StaticResource WatermarkTextBox}"
@@ -454,19 +458,15 @@
                     Height="20"
                     VerticalAlignment="Center"
                     HorizontalAlignment="Left"
-                     x:Name="_gamemodeFilterInput"
-                     x:FieldModifier="private" TextChanged="_gamemodeFilterInput_TextChanged" Grid.ColumnSpan="2"/>
+                    Text="{Binding GamemodeFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             <CheckBox Grid.Column="2"
                       Background="{StaticResource DarkBackgroundBrush}"
                       Foreground="{StaticResource TextSecondaryBrush}"
-                      IsChecked="False"
+                      IsChecked="{Binding IsInvertedGamemode, Mode=TwoWay}"
                       HorizontalAlignment="Right"
                       VerticalAlignment="Center"
                       Height="20"
-                      Content="Invert"
-                      x:Name="_isInvertedGamemode"
-                      x:FieldModifier="private" Checked="_isInvertedGamemode_Checked" Unchecked="_isInvertedGamemode_Unchecked" 
-                      />
+                      Content="Invert"/>
             <TextBox Grid.Column="2"
                     Style="{StaticResource WatermarkTextBox}"
                     Tag="Filter by Language"
@@ -476,21 +476,15 @@
                     Height="20"
                     VerticalAlignment="Bottom"
                     HorizontalAlignment="Left"
-                    x:Name="_languageFilterInput"
-                    x:FieldModifier="private" 
-                     TextChanged="_languageFilterInput_TextChanged" 
-                     Grid.ColumnSpan="2"/>
+                    Text="{Binding LanguageFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             <CheckBox Grid.Column="2"
                       Background="{StaticResource DarkBackgroundBrush}"
                       Foreground="{StaticResource TextSecondaryBrush}"
-                      IsChecked="False" 
+                      IsChecked="{Binding IsInvertedLanguage, Mode=TwoWay}"
                       HorizontalAlignment="Right"
                       VerticalAlignment="Bottom"
                       Height="20"
-                      Content="Invert"
-                      x:Name="_isInvertedLanguage"
-                      x:FieldModifier="private" Checked="_isInvertedLanguage_Checked" Unchecked="_isInvertedLanguage_Unchecked" 
-                      />
+                      Content="Invert"/>
             <StackPanel Grid.Column="4"
                         VerticalAlignment="Top"
                         HorizontalAlignment="Right">
@@ -512,68 +506,64 @@
                                   Background="{StaticResource DarkBackgroundBrush}"
                                   Foreground="{StaticResource TextSecondaryBrush}"
                                   BorderThickness="0.1"
-                                  x:Name="_isOnlyLagcompCheck"
-                                  x:FieldModifier="private" 
-                                  Click="_isOnlyLagcompCheck_Click"/>
+                                  IsChecked="{Binding IsOnlyLagcomp, Mode=TwoWay}"
+                                  Command="{Binding LagcompFilterCommand}"/>
                         <MenuItem Header="Only lagshot"
                                   IsCheckable="True"
                                   Margin="0,5"
                                   Background="{StaticResource DarkBackgroundBrush}"
                                   Foreground="{StaticResource TextSecondaryBrush}"
                                   BorderThickness="0.1"
-                                  x:Name="_isOnlyLagshotCheck"
-                                  x:FieldModifier="private" 
-                                  Click="_isOnlyLagshotCheck_Click"/>
+                                  IsChecked="{Binding IsOnlyLagshot, Mode=TwoWay}"
+                                  Command="{Binding LagshotFilterCommand}"/>
                         <MenuItem Header="Not empty"
                                   IsCheckable="True"
                                   Margin="0,5"
                                   Background="{StaticResource DarkBackgroundBrush}"
                                   Foreground="{StaticResource TextSecondaryBrush}"
                                   BorderThickness="0.1"
-                                  x:Name="_isNotEmptyCheck"
-                                  x:FieldModifier="private" 
-                                  Click="_isNotEmptyCheck_Click"/>
+                                  IsChecked="{Binding IsNotEmpty, Mode=TwoWay}"
+                                  Command="{Binding NotEmptyFilterCommand}"/>
                         <MenuItem Header="Not full"
                                   IsCheckable="True"
                                   Margin="0,5"
                                   Background="{StaticResource DarkBackgroundBrush}"
                                   Foreground="{StaticResource TextSecondaryBrush}"
                                   BorderThickness="0.1"
-                                  x:Name="_isNotFullCheck"
-                                  x:FieldModifier="private" Click="_isNotFullCheck_Click"
-                                  />
+                                  IsChecked="{Binding IsNotFull, Mode=TwoWay}"
+                                  Command="{Binding NotFullFilterCommand}"/>
                         <MenuItem Header="No password"
                                   IsCheckable="True"
                                   Margin="0,5"
                                   Background="{StaticResource DarkBackgroundBrush}"
                                   Foreground="{StaticResource TextSecondaryBrush}"
                                   BorderThickness="0.1"
-                                  x:Name="_isNoPasswordCheck"
-                                  x:FieldModifier="private" Click="_isNoPasswordCheck_Click"/>
+                                  IsChecked="{Binding IsNoPassword, Mode=TwoWay}"
+                                  Command="{Binding NoPasswordFilterCommand}"/>
                         <MenuItem Header="Only Open Mp"
                                   IsCheckable="True"
                                   Margin="0,5"
                                   Background="{StaticResource DarkBackgroundBrush}"
                                   Foreground="{StaticResource TextSecondaryBrush}"
                                   BorderThickness="0.1"
-                                  x:Name="_isOnlyOpenMpCheck"
-                                  x:FieldModifier="private" Click="_isOnlyOpenMpCheck_Click"/>
+                                  IsChecked="{Binding IsOnlyOpenMp, Mode=TwoWay}"
+                                  Command="{Binding OnlyOpenMpFilterCommand}"/>
                         <MenuItem Header="Only SAMP"
                                   IsCheckable="True"
                                   Margin="0,5"
                                   Background="{StaticResource DarkBackgroundBrush}"
                                   Foreground="{StaticResource TextSecondaryBrush}"
                                   BorderThickness="0.1"
-                                  x:Name="_isOnlySampCheck"
-                                  x:FieldModifier="private" Click="_isOnlySampCheck_Click"/>
+                                  IsChecked="{Binding IsOnlySamp, Mode=TwoWay}"
+                                  Command="{Binding OnlySampFilterCommand}"/>
                         <MenuItem Header="Only with SAMPCAC"
                                   IsCheckable="True"
                                   Margin="0,5"
                                   Background="{StaticResource DarkBackgroundBrush}"
                                   Foreground="{StaticResource TextSecondaryBrush}"
                                   BorderThickness="0.1"
-                                  x:Name="_isSampCacCheck"
-                                  x:FieldModifier="private" Click="_isSampCacCheck_Click"/>
+                                  IsChecked="{Binding IsSampCac, Mode=TwoWay}"
+                                  Command="{Binding SampCacFilterCommand}"/>
                     </MenuItem>
                 </Menu>
 
