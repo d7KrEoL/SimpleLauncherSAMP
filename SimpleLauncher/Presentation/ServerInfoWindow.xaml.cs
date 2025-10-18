@@ -6,7 +6,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net.NetworkInformation;
-using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -21,6 +20,8 @@ namespace SimpleLauncher.Presentation
         private readonly ILogger<ServerInfoWindow> _logger;
         private readonly IServerListService _serverListService;
         private readonly IConfigurationService _configurationService;
+        private event MainWindow.AddFavoriteServerEventHandler? _addFavoritesEvent;
+        private event MainWindow.AddHistoryServerEventHandler? _addHistoryEvent;
         private string _playerNickname = "Unnamed";
         private CancellationTokenSource? _pingCancellationTokenSource;
         private ObservableCollection<PlayerMeta> _players = new ObservableCollection<PlayerMeta>();
@@ -46,7 +47,9 @@ namespace SimpleLauncher.Presentation
         public async Task Configure(ServerMeta serverInfo,
             List<PlayerMeta> playersInfo,
             CancellationToken cancellationToken,
-            string playerNickname)
+            string playerNickname,
+            MainWindow.AddFavoriteServerEventHandler? onAddFavoriteServer,
+            MainWindow.AddHistoryServerEventHandler? onAddHistoryServer)
         {
             cancellationToken.ThrowIfCancellationRequested();
             _playerNickname = playerNickname;
@@ -62,6 +65,8 @@ namespace SimpleLauncher.Presentation
                 }
                 _ = ServerPingUpdater(_pingCancellationTokenSource.Token);
             });
+            _addFavoritesEvent += onAddFavoriteServer;
+            _addHistoryEvent += onAddHistoryServer;
         }
         public async Task UpdateNickname(string newNickname)
         {
@@ -114,6 +119,9 @@ namespace SimpleLauncher.Presentation
             if (_gameProcess is not null &&
                 !_gameProcess.CloseMainWindow())
                 _gameProcess.Kill();
+            _serverInfo = ServerMeta.CreateUnknown("Loading...", "Loading...", "Loading...");
+            _players.Clear();
+            _gameProcess = null;
         }
         /*
             -c rcon_password
@@ -147,12 +155,25 @@ namespace SimpleLauncher.Presentation
             {
                 _logger.LogError(ex, "Cannot start samp instance");
             }
-            _configurationService.AddValueToArray("ServerList:LastConnected", _serverInfo.IpAddress);
+            var isAdded = _configurationService
+                .AddValueToArray("ServerList:LastConnected", _serverInfo.IpAddress);
+            _logger.LogInformation("Server {INFO} was {ISADDED} to last connected serverlist", 
+                _serverInfo.IpAddress,
+                isAdded ? "added" : "not added");
         }
 
-        private void _saveButton_Click(object sender, RoutedEventArgs e)
+        private void _saveHistoryButton_Click(object sender, RoutedEventArgs e)
         {
-            
+            _addHistoryEvent?.Invoke(sender, 
+                _serverInfo.IpAddress, 
+                MainWindow.AddFavoriteOrHistoryOperationResult.Success);
+        }
+
+        private void _saveFavoritesButton_Click(object sender, RoutedEventArgs e)
+        {
+            _addFavoritesEvent?.Invoke(sender,
+                _serverInfo.IpAddress,
+                MainWindow.AddFavoriteOrHistoryOperationResult.Success);
         }
 
         private void _closeButton_Click(object sender, RoutedEventArgs e)
@@ -281,7 +302,7 @@ namespace SimpleLauncher.Presentation
                         else
                         {
                             pingValue = (uint)reply.RoundtripTime;
-                            _logger.LogInformation("Ping: {PONG}", (uint)reply.RoundtripTime);
+                            _logger.LogTrace("Ping: {PONG}", (uint)reply.RoundtripTime);
                         }
                     }
                     _serverInfo.UpdatePing(pingValue);

@@ -35,11 +35,11 @@ namespace SimpleLauncher.Infrastructure.MonitorAPI.Gateways
         }
         public async Task<List<ServerMeta>?> GetServers(CancellationToken cancellationToken)
         {
+            const string AllServersEndpoint = "servers";
             cancellationToken.ThrowIfCancellationRequested();
             if (_httpClient is null || _uri is null)
                 return null;
-            const string ServerDetailedInfoEndpoint = "servers";
-            var request = $"{_uri.ToString()}{ServerDetailedInfoEndpoint}";
+            var request = $"{_uri.ToString()}{AllServersEndpoint}";
             var requestResult = await _httpClient.GetAsync(request);
             if (requestResult is null)
                 return null;
@@ -71,8 +71,38 @@ namespace SimpleLauncher.Infrastructure.MonitorAPI.Gateways
             ushort serverPort,
             CancellationToken cancellationToken)
         {
+            const string ServerDetailedInfoEndpoint = "servers";
             cancellationToken.ThrowIfCancellationRequested();
-            throw new NotImplementedException();
+            if (_httpClient is null || _uri is null)
+                return null;
+            var request = $"{_uri.ToString()}{ServerDetailedInfoEndpoint}/{serverIp}";
+            var requestResult = await _httpClient.GetAsync(request);
+            if (requestResult is null)
+                return null;
+            var content = await requestResult.Content.ReadAsStringAsync();
+            var response = JsonSerializer.Deserialize<List<GetServerInfoResponse>>(content,
+                new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+            _logger.LogTrace("OpenMP server list response approved");
+            return response?
+                .Select(result => new ServerMeta(result.core.hn,
+                    result.ip,
+                    result.ip,
+                    0,
+                    result.ru.weburl,
+                    result.core.la,
+                    result.core.gm,
+                    result.core.vn,
+                    (uint)result.core.pc,
+                    (uint)result.core.pm,
+                    new List<string>(),
+                    result.ru.lagcomp.Equals("Yes") ? true : false,
+                    false,
+                    result.core.omp,
+                    result.core.pr))
+                .FirstOrDefault();
         }
         public async Task<List<PlayerMeta>?> GetServerPlayers(string serverIp,
             ushort serverPort,

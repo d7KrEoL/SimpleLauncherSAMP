@@ -4,7 +4,7 @@ namespace SimpleLauncher.Domain.Models
 {
     public class ServerMeta
     {
-        public string Name { get; init; }
+        public string Name { get; set; }
         public string UriAddress { get; init; }
         public string IpAddress { get; init; }
         public uint Ping { get; private set; }
@@ -51,11 +51,29 @@ namespace SimpleLauncher.Domain.Models
             IsOpenMp = isOpenMp;
             HasPassword = hasPassword;
         }
+        public static ServerMeta CreateUnknown(string? serverName, string uriAddress, string ipAddress)
+            => new ServerMeta(serverName ?? "Unknown (server is not responding)", 
+                uriAddress, 
+                ipAddress, 
+                0, 
+                "N/A", 
+                "N/A", 
+                "N/A", 
+                "N/A", 
+                0, 
+                0, 
+                new List<string>(), 
+                false, 
+                false, 
+                false,
+                false);
         public void SetPlayers(List<string> players)
             => Players = players.Any() ? players : Players;
         public void AddPlayer(string playerName)
             => Players.Append(playerName);
         public void UpdatePing(uint ping)
             => Ping = ping >= 0 ? ping : Ping;
+        public void SetName(string name)
+            => Name = string.IsNullOrWhiteSpace(name) ? Name : name;
     }
 }

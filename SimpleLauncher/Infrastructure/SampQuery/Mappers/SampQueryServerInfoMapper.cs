@@ -1,9 +1,5 @@
 ﻿using SimpleLauncher.Domain.Models;
 using SimpleLauncher.Infrastructure.SampQuery.Models;
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace SimpleLauncher.Infrastructure.SampQuery.Mappers
 {
@@ -11,8 +7,8 @@ namespace SimpleLauncher.Infrastructure.SampQuery.Mappers
     {
         public static ServerMeta ToApplicationModel(this QueryServerInfo queryServerInfo, string serverIp, ushort port)
             => new ServerMeta(queryServerInfo.HostName,
-                serverIp,
-                serverIp,
+                $"{serverIp}:{port}",
+                $"{serverIp}:{port}",
                 (uint)queryServerInfo.ServerPing,
                 string.Empty,
                 queryServerInfo.Language,
@@ -31,8 +27,8 @@ namespace SimpleLauncher.Infrastructure.SampQuery.Mappers
             QueryServerRules rules,
             List<string>? players)
             => new ServerMeta(queryServerInfo.HostName,
-                serverIp,
-                serverIp,
+                $"{serverIp}:{port}",
+                $"{serverIp}:{port}",
                 (uint)queryServerInfo.ServerPing,
                 rules.WebUrl?.ToString() ?? string.Empty,
                 queryServerInfo.Language,

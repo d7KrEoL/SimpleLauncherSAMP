@@ -6,6 +6,11 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <Description>Launcher for Grand Theft Auto San Andreas Multiplayer. Supports multiple GTA builds, multiple server monitoring systems, have no Hosted list, only internet, favorites and history. Allows to launch multiple GTASA instances</Description>
+    <Copyright>MIT License Copyright (c) 2025 d7KrEoL</Copyright>
+    <PackageProjectUrl>https://github.com/d7KrEoL/SimpleLauncher</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/d7KrEoL/SimpleLauncher</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,5 +24,6 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.9" />
   </ItemGroup>
+
 
 </Project>

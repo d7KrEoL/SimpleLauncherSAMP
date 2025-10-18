@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using SimpleLauncher.Domain.Abstractions;
 using System.IO;
 using System.Text.Json;
@@ -8,6 +9,7 @@ namespace SimpleLauncher.Services
 {
     public class ConfigurationService : IConfigurationService
     {
+        private const string CannotReloadConfigErrorMessage = "Cannot reload configuration after change.";
         private readonly string _configFilePath;
         private readonly IConfigurationRoot _configurationRoot;
 
@@ -21,14 +23,13 @@ namespace SimpleLauncher.Services
                 : throw new ArgumentException("configuration file path is empty");
         }
 
-        public void AddValueToArray(string sectionPath, string value)
+        public bool AddValueToArray(string sectionPath, string value)
         {
             var json = File.ReadAllText(_configFilePath);
             var jsonNode = JsonNode.Parse(json) ?? new JsonObject();
 
             var parts = sectionPath.Split(':');
             JsonNode? current = jsonNode;
-
             for (int i = 0; i < parts.Length - 1; i++)
             {
                 if (current is null)
@@ -40,10 +41,11 @@ namespace SimpleLauncher.Services
             }
 
             var lastPart = parts[^1];
-
             if (current is not null && 
                 current[lastPart] is JsonArray array)
             {
+                if (array.Where(arr => arr.ToJsonString().Equals($"\"{value}\"")).Any())
+                    return false;
                 array.Add(value);
             }
             else
@@ -54,6 +56,8 @@ namespace SimpleLauncher.Services
             var options = new JsonSerializerOptions { WriteIndented = true };
             var newJson = jsonNode.ToJsonString(options);
             File.WriteAllText(_configFilePath, newJson);
+            
+            return ReloadConfiguration();
         }
 
         public void SaveValue(string section, string key, string value)
@@ -69,6 +73,20 @@ namespace SimpleLauncher.Services
             var options = new JsonSerializerOptions { WriteIndented = true };
             var newJson = JsonSerializer.Serialize(configDictionary, options);
             File.WriteAllText(_configFilePath, newJson);
+            ReloadConfiguration();
+        }
+        private bool ReloadConfiguration()
+        {
+            try
+            {
+                _configurationRoot.Reload();
+            }
+            catch (Exception ex)
+            {
+                // _logger.LogError(ex, CannotReloadConfigErrorMessage);
+                return false;
+            }
+            return true;
         }
 
         private Dictionary<string, object> ConvertToDictionary(JsonElement element)

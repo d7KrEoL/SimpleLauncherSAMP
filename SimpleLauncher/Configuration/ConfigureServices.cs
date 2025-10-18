@@ -61,6 +61,7 @@ namespace SimpleLauncher.Configuration
         {
             collection.AddTransient<MainWindow>();
             collection.AddTransient<ServerInfoWindow>();
+            collection.AddTransient<AddFavoriteServerDialog>();
         }
     }
 }

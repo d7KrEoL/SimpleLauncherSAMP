@@ -2,7 +2,7 @@
 {
     public interface IConfigurationService
     {
-        public void AddValueToArray(string section, string value);
+        public bool AddValueToArray(string section, string value);
         public void SaveValue(string section, string key, string value);
     }
 }

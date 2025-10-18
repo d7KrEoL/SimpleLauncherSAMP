@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using SimpleLauncher.Domain.Abstractions;
 using SimpleLauncher.Domain.Models;
-using System.Net;
+using System.Net.NetworkInformation;
 
 namespace SimpleLauncher.Services
 {
@@ -44,7 +44,20 @@ namespace SimpleLauncher.Services
         public async Task<ServerMeta?> GetServerInfoAsync(string ipAddressAndPort,
             CancellationToken cancellationToken)
         {
+            const int PingTimeoutMilliseconds = 2000;
             cancellationToken.ThrowIfCancellationRequested();
+            using var ping = new Ping();
+            var reply = await ping.SendPingAsync(ipAddressAndPort.Split(':')[0], 
+                PingTimeoutMilliseconds);
+            if (!reply.Status.Equals(IPStatus.Success))
+            {
+                var ipAndPortArray = ipAddressAndPort.Split(":");
+                if (!ushort.TryParse(ipAndPortArray[1], out var port))
+                    return null;
+                var meta = await _monitoringApiGateway.GetServerInfo(ipAndPortArray[0], port, cancellationToken);
+                meta?.SetName($"{meta.Name} (not responding)");
+                return meta;
+            }
             return await _sampQueryAdapter.GetServerInfoAsync(ipAddressAndPort, cancellationToken);
         }
         public async Task<ServerMeta?> UpdateServerInfoAsync(string ipAddress, 

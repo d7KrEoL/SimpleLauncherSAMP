@@ -10,7 +10,7 @@ using SimpleLauncher.Domain.Models;
 using SimpleLauncher.Infrastructure.SampQuery.Models;
 using SimpleLauncher.Infrastructure.SampQuery.Mappers;
 using System.Diagnostics;
-/* This code was taken from SAMonitor GitHub project.
+/* This code is based on SAMonitor GitHub project's samp query.
  * Author: markski1
  * See original here: https://github.com/markski1/SAMonitor/blob/main/API/Utils/SampQuery.cs
  */
@@ -283,6 +283,7 @@ namespace SimpleLauncher.Infrastructure.SampQuery
 
         private QueryServerInfo CollectServerInfoFromByteArray(byte[] data, Stopwatch transmitMs)
         {
+            _logger.LogTrace("Collecting server info from byte array...");
             using MemoryStream stream = new(data);
             using BinaryReader read = new(stream, Encoding.GetEncoding(1251));
             read.ReadBytes(10);
@@ -293,6 +294,7 @@ namespace SimpleLauncher.Infrastructure.SampQuery
             {
                 _logger.LogWarning("Cannot calculate server ping");
             }
+            _logger.LogTrace("Server info byte array collected successfully.");
 
             return new QueryServerInfo
             {

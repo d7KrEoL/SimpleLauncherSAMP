@@ -131,7 +131,17 @@
                            FontWeight="SemiBold"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"/>
-            
+                <Button Grid.Column="2"
+                        Grid.Row="2"
+                        Background="{StaticResource DarkBackgroundBrush}"
+                        Foreground="{StaticResource TextPrimaryBrush}"
+                        Content="Add new server"
+                        Width="150"
+                        HorizontalAlignment="Center"
+                        x:Name="_addFavoritesButton"
+                        x:FieldModifier="private" 
+                        Click="_addFavoritesButton_Click"/>
+
                 <!-- Правое меню -->
                 <StackPanel Grid.Column="4" 
                             Orientation="Horizontal" 
@@ -318,10 +328,11 @@
         <!-- Нижняя панель -->
         <Grid Grid.Row="2" Margin="0,15,0,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="0.5*"/>
+                <ColumnDefinition Width="529*"/>
+                <ColumnDefinition Width="Auto" MinWidth="180"/>
+                <ColumnDefinition Width="36*" MinWidth="170"/>
+                <ColumnDefinition Width="20*"/>
+                <ColumnDefinition Width="132*"/>
             </Grid.ColumnDefinitions>
 
             <!-- Лог приложения -->
@@ -329,7 +340,7 @@
                     Background="{StaticResource SurfaceDarkBrush}"
                     CornerRadius="8"
                     Padding="1"
-                    Effect="{StaticResource ShadowSmall}">
+                    Effect="{StaticResource ShadowSmall}" Grid.ColumnSpan="2" Margin="0,0,181,0">
                 <Grid Height="80">
                     <ListBox x:Name="_logBox" 
                              x:FieldModifier="private"
@@ -366,7 +377,7 @@
             </Border>
 
             <StackPanel Orientation="Horizontal"
-                        Grid.Column="1">
+                        Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,36,0">
                 <Button x:Name="_allButton"
                         x:FieldModifier="private"
                         Background="{StaticResource DarkBackgroundBrush}"
@@ -406,9 +417,9 @@
                     Content="Refresh Servers"
                     Width="140"
                     Height="40"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Bottom"
-                    Margin="20,5"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Margin="0,37,0,0"
                     FontWeight="SemiBold" Click="_refreshButton_Click"/>
 
             <TextBox Grid.Column="2"
@@ -419,8 +430,20 @@
                     Width="115"
                     Height="20"
                     VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
                      x:Name="_hostnameFilterInput"
-                     x:FieldModifier="private" TextChanged="_hostnameFilterInput_TextChanged"/>
+                     x:FieldModifier="private" TextChanged="_hostnameFilterInput_TextChanged" Grid.ColumnSpan="2"/>
+            <CheckBox Grid.Column="2"
+                      Background="{StaticResource DarkBackgroundBrush}"
+                      Foreground="{StaticResource TextSecondaryBrush}"
+                      IsChecked="False"
+                      Height="20"
+                      HorizontalAlignment="Right"
+                      VerticalAlignment="Top"
+                      Content="Invert"
+                      x:Name="_isInvertedHostname"
+                      x:FieldModifier="private" Checked="_isInvertedHostname_Checked" Unchecked="_isInvertedHostname_Unchecked" 
+                      />
 
             <TextBox Grid.Column="2"
                     Style="{StaticResource WatermarkTextBox}"
@@ -430,8 +453,20 @@
                     Width="115"
                     Height="20"
                     VerticalAlignment="Center"
+                    HorizontalAlignment="Left"
                      x:Name="_gamemodeFilterInput"
-                     x:FieldModifier="private" TextChanged="_gamemodeFilterInput_TextChanged"/>
+                     x:FieldModifier="private" TextChanged="_gamemodeFilterInput_TextChanged" Grid.ColumnSpan="2"/>
+            <CheckBox Grid.Column="2"
+                      Background="{StaticResource DarkBackgroundBrush}"
+                      Foreground="{StaticResource TextSecondaryBrush}"
+                      IsChecked="False"
+                      HorizontalAlignment="Right"
+                      VerticalAlignment="Center"
+                      Height="20"
+                      Content="Invert"
+                      x:Name="_isInvertedGamemode"
+                      x:FieldModifier="private" Checked="_isInvertedGamemode_Checked" Unchecked="_isInvertedGamemode_Unchecked" 
+                      />
             <TextBox Grid.Column="2"
                     Style="{StaticResource WatermarkTextBox}"
                     Tag="Filter by Language"
@@ -440,9 +475,23 @@
                     Width="115"
                     Height="20"
                     VerticalAlignment="Bottom"
+                    HorizontalAlignment="Left"
                     x:Name="_languageFilterInput"
-                    x:FieldModifier="private" TextChanged="_languageFilterInput_TextChanged"/>
-            <StackPanel Grid.Column="3"
+                    x:FieldModifier="private" 
+                     TextChanged="_languageFilterInput_TextChanged" 
+                     Grid.ColumnSpan="2"/>
+            <CheckBox Grid.Column="2"
+                      Background="{StaticResource DarkBackgroundBrush}"
+                      Foreground="{StaticResource TextSecondaryBrush}"
+                      IsChecked="False" 
+                      HorizontalAlignment="Right"
+                      VerticalAlignment="Bottom"
+                      Height="20"
+                      Content="Invert"
+                      x:Name="_isInvertedLanguage"
+                      x:FieldModifier="private" Checked="_isInvertedLanguage_Checked" Unchecked="_isInvertedLanguage_Unchecked" 
+                      />
+            <StackPanel Grid.Column="4"
                         VerticalAlignment="Top"
                         HorizontalAlignment="Right">
                 <Menu Margin="0, 1"
@@ -531,7 +580,7 @@
             </StackPanel>
 
             <!-- Информация о версии -->
-            <Border Grid.Column="3"
+            <Border Grid.Column="4"
                     Background="{StaticResource SurfaceDarkBrush}"
                     CornerRadius="8"
                     Padding="5,8"
