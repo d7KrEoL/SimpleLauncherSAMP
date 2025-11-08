@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Configuration\" />
+    <Folder Include="Domain\" />
+    <Folder Include="Infrastructure\MonitorAPI\Contracts\GS4u\" />
+    <Folder Include="Infrastructure\MonitorAPI\Contracts\OpenMP\" />
+    <Folder Include="Infrastructure\MonitorAPI\Gateways\" />
+    <Folder Include="Infrastructure\MonitorAPI\Mappers\" />
+    <Folder Include="Infrastructure\MonitorAPI\Models\" />
+    <Folder Include="Presentation\" />
+    <Folder Include="Services\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\SimpleLauncher\SimpleLauncher.csproj" />
+  </ItemGroup>
+
+</Project>

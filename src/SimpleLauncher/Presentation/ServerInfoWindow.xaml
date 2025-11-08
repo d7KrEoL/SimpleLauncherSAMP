@@ -1,0 +1,229 @@
+<Window x:Class="SimpleLauncher.Presentation.ServerInfoWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SimpleLauncher.Presentation"
+        mc:Ignorable="d"
+        WindowStyle="ToolWindow"
+        Title="Server information" 
+        Width="480" 
+        Height="340" 
+        Background="{StaticResource DarkBackgroundBrush}" 
+        MinWidth="450" 
+        MinHeight="320" 
+        Closing="Window_Closing" 
+        WindowStartupLocation="CenterOwner" 
+        MouseLeftButtonDown="Window_MouseLeftButtonDown">
+    <Border Grid.Row="0" 
+        Background="{StaticResource SurfaceDarkBrush}"
+        CornerRadius="8"
+        Padding="15,10"
+        Margin="1,5,1,5"
+        Effect="{StaticResource ShadowSmall}">
+    <Grid Margin="1">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition MinHeight="20"/>
+            <RowDefinition MinHeight="20"/>
+            <RowDefinition MinHeight="20"/>
+            <RowDefinition MinHeight="20"/>
+            <RowDefinition MinHeight="20"/>
+            <RowDefinition MinHeight="20"/>
+            <RowDefinition Height="25"/>
+            <RowDefinition Height="30"/>
+            </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+                <ColumnDefinition MinWidth="130"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition MinWidth="130"/>
+        </Grid.ColumnDefinitions>
+            <Label Grid.Column="0"
+                   Grid.ColumnSpan="3"
+                   Grid.Row="0"
+                   HorizontalAlignment="Center" 
+                   Foreground="{StaticResource TextPrimaryBrush}"
+                   FontSize="18"
+                   Content="Loading..."
+                   x:Name="_serverNameLabel"
+                   x:FieldModifier="private"/>
+            <Label Grid.Column="1"
+                   Grid.Row="1"
+                   HorizontalContentAlignment="Center"
+                   FontSize="16"
+                   Foreground="{StaticResource TextSecondaryBrush}"
+                   Content="Loading..."
+                   x:Name="_serverIpLabel"
+                   x:FieldModifier="private" MouseDoubleClick="_serverIpLabel_MouseDoubleClick"/>
+            <Label Grid.Column="0"
+                   Grid.Row="2"
+                   HorizontalContentAlignment="Center"
+                   FontSize="14"
+                   Foreground="{StaticResource TextSecondaryBrush}"
+                   Content="Online: 400/500"
+                   x:Name="_serverOnlineLabel"
+                   x:FieldModifier="private"/>
+            <Canvas Grid.Column="1"
+                    Grid.Row="2"
+                    Background="Transparent"
+                    MinWidth="170"
+                    MinHeight="30"
+                    x:Name="_serverPingCanvas"
+                    x:FieldModifier="private"/>
+            <Label Grid.Column="2"
+                   Grid.Row="2"
+                   HorizontalContentAlignment="Center"
+                   FontSize="14"
+                   Foreground="{StaticResource TextSecondaryBrush}"
+                   Content="Ping: 230"
+                   x:Name="_serverPingLabel"
+                   x:FieldModifier="private"/>
+            <Label Grid.Column="1"
+                   Grid.Row="3"
+                   FontSize="14"
+                   Foreground="{StaticResource TextSecondaryBrush}"
+                   HorizontalAlignment="Center"
+                   Content="Mode: RPG/Stunt/DM/Drift"
+                   x:Name="_serverModeLabel"
+                   x:FieldModifier="private"/>
+            <ListView Grid.Column="2"
+                      Grid.Row="3"
+                      Grid.RowSpan="4"
+                      MaxWidth="330"
+                      HorizontalContentAlignment="Center"
+                      Style="{StaticResource DarkModernSmallListView}"
+                      BorderBrush="{StaticResource BorderBrush}"
+                      x:Name="_serverPlayersListView"
+                      x:FieldModifier="private"
+                      SizeChanged="ServerPlayersListView_SizeChanged" MouseDoubleClick="_serverPlayersListView_MouseDoubleClick">
+                <ListView.Resources>
+                    <Style TargetType="ListViewItem">
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#BB86FC"/>
+                                <Setter Property="Foreground" Value="Black"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#9977FF"/>
+                                <Setter Property="Foreground" Value="#111111"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ListView.Resources>
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn x:Name="IdColumn" 
+                           Header="ID" 
+                           Width="40" 
+                           DisplayMemberBinding="{Binding Id}"/>
+                        <GridViewColumn x:Name="NameColumn" 
+                           Header="Name" 
+                           Width="200" 
+                           DisplayMemberBinding="{Binding Name}"/>
+                        <GridViewColumn x:Name="ScoreColumn" 
+                           Header="Score" 
+                           Width="80" 
+                           DisplayMemberBinding="{Binding Score}"/>
+                        <GridViewColumn x:Name="PingColumn" 
+                           Header="Ping" 
+                           Width="60" 
+                           DisplayMemberBinding="{Binding Ping}"/>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+            <Label Grid.Column="1"
+                   Grid.Row="4"
+                   FontSize="14"
+                   Foreground="{StaticResource TextSecondaryBrush}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Content="Language: Russian"
+                   x:Name="_serverLanguageLabel"
+                   x:FieldModifier="private"/>
+            <Label Grid.Column="0"
+                   Grid.Row="5"
+                   FontSize="12"
+                   Foreground="{StaticResource TextSecondaryBrush}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Content="Server password"/>
+            <PasswordBox Grid.Column="1"
+                   Grid.Row="5"
+                   FontSize="9"
+                   Foreground="{StaticResource TextSecondaryBrush}"
+                   Background="{StaticResource DarkBackgroundBrush}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Width="120"
+                   Height="15"
+                   Password=""
+                   x:Name="_serverPasswordInput"
+                   x:FieldModifier="private"/>
+            <Label Grid.Column="0"
+                   Grid.Row="6"
+                   FontSize="12"
+                   Foreground="{StaticResource TextSecondaryBrush}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Content="RCON password"/>
+            <PasswordBox Grid.Column="1"
+                       Grid.Row="6"
+                       FontSize="9"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       Background="{StaticResource DarkBackgroundBrush}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Width="120"
+                       Height="15"
+                       Password=""
+                       x:Name="_serverRconInput"
+                       x:FieldModifier="private"/>
+            <StackPanel Orientation="Horizontal" 
+                        Grid.Column="0" 
+                        Grid.Row="8"
+                        Grid.ColumnSpan="3"
+                        HorizontalAlignment="Center">
+            <Button Width="80"
+                    Height="23"
+                    Style="{StaticResource DarkModernButtonPrimary}"
+                    Padding="10,0"
+                    FontSize="13"
+                    Content="Connect"
+                    IsEnabled="False"
+                    Margin="5 0"
+                    x:Name="_connectButton"
+                    x:FieldModifier="private" 
+                    Click="_connectButton_Click"/>
+            <Button Width="100"
+                    Height="20"
+                    Style="{StaticResource DarkModernButton}"
+                    Padding="10,0"
+                    FontSize="12"
+                    Content="Save (History)"
+                    Margin="5 0"
+                    x:Name="_saveHistoryButton"
+                    x:FieldModifier="private" 
+                    Click="_saveHistoryButton_Click"/>
+            <Button Width="120"
+                    Height="20"
+                    Style="{StaticResource DarkModernButton}"
+                    Padding="10,0"
+                    FontSize="12"
+                    Content="Save (Favorites)"
+                    Margin="5 0"
+                    x:Name="_saveFavoritesButton"
+                    x:FieldModifier="private" 
+                    Click="_saveFavoritesButton_Click"/>
+            <Button Width="80"
+                    Height="20"
+                    Style="{StaticResource DarkModernButton}"
+                    Padding="10,0"
+                    FontSize="12"
+                    Content="Close"
+                    Margin="10 0"
+                    x:Name="_closeButton"
+                    x:FieldModifier="private" Click="_closeButton_Click"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>
