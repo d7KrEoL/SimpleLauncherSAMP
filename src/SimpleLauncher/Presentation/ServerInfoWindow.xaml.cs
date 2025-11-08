@@ -6,7 +6,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net.NetworkInformation;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -28,8 +27,8 @@ namespace SimpleLauncher.Presentation
         private CancellationTokenSource? _pingCancellationTokenSource;
         private CancellationTokenSource? _launchGameCancellationTokenSource;
         private ObservableCollection<PlayerMeta> _players = new ObservableCollection<PlayerMeta>();
-        private ServerMeta _serverInfo;
-        private List<PlayerMeta> _playersInfo;
+        private ServerMeta? _serverInfo;
+        private List<PlayerMeta>? _playersInfo;
         private Process? _gameProcess;
         private Point[] _printPoints = new Point[DrawnablePointsCount];
         public ServerInfoWindow(ILogService logService, 
@@ -121,6 +120,8 @@ namespace SimpleLauncher.Presentation
         {
             _pingCancellationTokenSource?.Cancel();
             _pingCancellationTokenSource?.Dispose();
+            _launchGameCancellationTokenSource?.Cancel();
+            _launchGameCancellationTokenSource?.Dispose();
             GameTermination();
             _serverInfo = ServerMeta.CreateUnknown("Loading...", "Loading...", "Loading...");
             _players.Clear();
@@ -131,51 +132,52 @@ namespace SimpleLauncher.Presentation
             if (_gameProcess is not null) 
                 await GameProcess.TerminateProcessAsync(_gameProcess);
         }
-        /*
-            -c rcon_password
-            -n player name
-            -h server ip
-            -p server port
-            -z server password
-            -d debug 
-        TODO replace connection function with something like this:
-        https://github.com/BigETI/SAMPLauncherNET/blob/master/SAMPLauncherNET/Source/SAMPLauncherNET/Core/SAMP.cs
-        */
         private void _connectButton_Click(object sender, RoutedEventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(_playerNickname))
+            {
+                _logger.LogError("Your nickname is empty. Please set your nickname.");
+                return;
+            }
             try
             {
                 _launchGameCancellationTokenSource?.Cancel();
                 _launchGameCancellationTokenSource?.Dispose();
                 _launchGameCancellationTokenSource = new CancellationTokenSource();
-                var clientPath = 
-                    GameFiles.GetClientLibraryPathFromExecutablePath(SystemRegistry.FindSampPathInRegistry());
-                if (clientPath is null)
+                var gamePath = 
+                    GameFiles
+                    .GetClientLibraryPathFromExecutablePath(SystemRegistry.FindGamePathInRegistry());
+                if (gamePath is null)
                 {
                     _logger.LogError("Cannot find SAMP client library in registry path");
                     return;
                 }
-                var gamePath = GameFiles.GetGameExecutablePathFromClientPath(clientPath);
+                var clientPath = GameFiles.GetClientLibraryPathFromExecutablePath(gamePath);
                 if (gamePath is null)
                 {
                     _logger.LogError("Cannot find GTA:SA executable in root directory of SAMP client: {CLIENTPATH}", 
-                        clientPath);
+                        gamePath);
                     return;
                 }
-
-                var ipPort = _serverInfo.IpAddress.Split(':');
-                string args = $"-h {ipPort[0]} -p {ipPort[1]} -n {_playerNickname}";
-                if (!string.IsNullOrWhiteSpace(_serverRconInput.Password))
-                    args += $" -c {_serverRconInput.Password}";
-                if (!string.IsNullOrWhiteSpace(_serverPasswordInput.Password))
-                    args += $" -z {_serverPasswordInput.Password}";
-                _logger.LogInformation("Starting game with {ARGS}", args);
-
-                _gameProcessManager.StartAndConnectAsync(gamePath, 
-                    clientPath, 
-                    args, 
-                    _serverInfo.IpAddress, 
-                    new List<GameAddon>(),
+                var ipPort = _serverInfo?.IpAddress.Split(':');
+                if (ipPort is null || ipPort.Length < 1)
+                {
+                    _logger.LogError("Wrong server ip:port information");
+                    return;
+                }
+                var directory = Path.GetDirectoryName(gamePath);
+                if (directory is null)
+                {
+                    _logger.LogError("{gamePath} - wrong client executable path", gamePath);
+                    return;
+                }
+                _logger.LogInformation("Starting game at {path}", directory);
+                _gameProcessManager.StartAndConnectAsync(IGameProcessManager.GameLaunchInjectionType.SAMP,
+                    directory,
+                    ipPort[0],
+                    ipPort[1],
+                    _playerNickname,
+                    _serverPasswordInput.Password,
                     _launchGameCancellationTokenSource.Token);
             }
             catch(DirectoryNotFoundException ex)
@@ -190,6 +192,11 @@ namespace SimpleLauncher.Presentation
             {
                 _logger.LogError(ex, "Cannot launch game instance");
             }
+            if (_serverInfo is null)
+            {
+                _logger.LogError("ServerInfo is not set");
+                return;
+            }
             var isAdded = _configurationService
                 .AddValueToArray("ServerList:LastConnected", _serverInfo.IpAddress);
             _logger.LogInformation("Server {INFO} was {ISADDED} to last connected serverlist", 
@@ -199,6 +206,11 @@ namespace SimpleLauncher.Presentation
 
         private void _saveHistoryButton_Click(object sender, RoutedEventArgs e)
         {
+            if (_serverInfo is null)
+            {
+                _logger.LogError("ServerInfo is not set");
+                return;
+            }
             _addHistoryEvent?.Invoke(sender, 
                 _serverInfo.IpAddress, 
                 AddFavoriteOrHistoryOperationResult.Success);
@@ -206,6 +218,11 @@ namespace SimpleLauncher.Presentation
 
         private void _saveFavoritesButton_Click(object sender, RoutedEventArgs e)
         {
+            if (_serverInfo is null)
+            {
+                _logger.LogError("ServerInfo is not set");
+                return;
+            }
             _addFavoritesEvent?.Invoke(sender,
                 _serverInfo.IpAddress,
                 AddFavoriteOrHistoryOperationResult.Success);
@@ -282,6 +299,16 @@ namespace SimpleLauncher.Presentation
             {
                 try
                 {
+                    if (_serverInfo is null)
+                    {
+                        _logger.LogError("ServerInfo is not set");
+                        return;
+                    }
+                    if (_playersInfo is null)
+                    {
+                        _logger.LogError("PlayersInfo is not set");
+                        return;
+                    }
                     await stopQueryTokenSource.CancelAsync();
                     stopQueryTokenSource.Dispose();
                     stopQueryTokenSource = new CancellationTokenSource();

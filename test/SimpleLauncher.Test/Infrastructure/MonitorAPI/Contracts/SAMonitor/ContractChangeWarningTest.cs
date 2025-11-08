@@ -145,9 +145,10 @@ namespace SimpleLauncher.Test.Infrastructure.MonitorAPI.Contracts.SAMonitor
         [Fact]
         public void GetServerPlayersRequestUnitTest_WarnsIfCompatabilityBroken()
         {
-            var request1 = new GetServerPlayersRequest(IpAddress01);
-            var request2 = new GetServerPlayersRequest(IpAddress02);
-            var request3 = new GetServerPlayersRequest(IpAddress01);
+            var ipPort = IpAddress01.Split(':');
+            var request1 = new GetServerPlayersRequest(ipPort[0], ipPort[1]);
+            var request2 = new GetServerPlayersRequest(ipPort[0], ipPort[1]);
+            var request3 = new GetServerPlayersRequest(ipPort[0], ipPort[1]);
             Assert.Equal(request1, request3);
             Assert.NotEqual(request1, request2);
             Assert.True(request1 == request3);

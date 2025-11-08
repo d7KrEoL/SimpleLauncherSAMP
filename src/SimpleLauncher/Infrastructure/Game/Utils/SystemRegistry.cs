@@ -5,7 +5,7 @@ namespace SimpleLauncher.Infrastructure.Game.Utils
 {
     internal static class SystemRegistry
     {
-        public static string FindSampPathInRegistry()
+        public static string FindGamePathInRegistry()
         {
             const string RegistryPath = @"SOFTWARE\SAMP";
             const string ValueName = "gta_sa_exe";
@@ -17,23 +17,23 @@ namespace SimpleLauncher.Infrastructure.Game.Utils
             var gtaPath = key.GetValue(ValueName) as string;
             if (gtaPath is null)
                 throw new FileNotFoundException("Cannot find gta_sa_exe registry key");
-            var gameDirectory = Path.GetDirectoryName(gtaPath);
+            /*var gameDirectory = Path.GetDirectoryName(gtaPath);
             if (string.IsNullOrEmpty(gameDirectory))
                 throw new DirectoryNotFoundException("Cannot find gta game directory");
             var clientPath = Path.Combine(gameDirectory, SampExecutableName);
-            if (!File.Exists(clientPath))
+            if (!File.Exists(gameDirectory))
             {
                 string[] exeFiles = Directory.GetFiles(gameDirectory, "*.exe");
 
-                clientPath = exeFiles?
+                key = exeFiles?
                     .Where(file => file
                         .StartsWith("samp", StringComparison.OrdinalIgnoreCase))
                     .OfType<string>()?
                     .Take(1)?
                     .ToArray()[0] ??
                     throw new FileNotFoundException($"Cannot find {SampExecutableName} in samp directory");
-            }
-            return clientPath;
+            }*/
+            return gtaPath;
         }
     }
 }

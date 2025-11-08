@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -24,13 +25,19 @@ namespace SimpleLauncher.Presentation.ViewModels
         private readonly IServiceProvider _serviceProvider;
         private readonly IConfigurationService _configurationService;
         private readonly Dictionary<string, object?> _activeFilters = new();
+        private static readonly Regex NicknameValidCharsRegex = new Regex(@"^[A-Za-z0-9_\.\[\]@!#$]*$");
         private AddFavoriteServerDialog? _addFavoriteServerDialog;
         private ServerInfoWindow? _serverInfoWindow;
         private string _nickname = "Nickname";
         public string Nickname
         {
             get => _nickname;
-            set { _nickname = value; OnPropertyChanged(); }
+            set {
+                if (!IsValidNicknameField(value))
+                    return;
+                _nickname = value; 
+                OnPropertyChanged(); 
+            }
         }
 
         private IMonitoringApiGateway? _selectedMonitoringService;
@@ -812,6 +819,15 @@ namespace SimpleLauncher.Presentation.ViewModels
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? name = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+        private static bool IsValidNicknameField(string? nickname)
+        {
+            if (nickname is null)
+                return false;
+            if (nickname.Length == 0 || nickname.IsWhiteSpace())
+                return true;
+            return NicknameValidCharsRegex.IsMatch(nickname);
+        }
     }
 
     public enum ServerListMode { All, Favorites, History }
