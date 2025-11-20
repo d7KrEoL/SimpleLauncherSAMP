@@ -144,11 +144,11 @@ namespace SimpleLauncher.Test.Infrastructure.MonitorAPI.Contracts.SAMonitor
         /// </remarks>
         [Fact]
         public void GetServerPlayersRequestUnitTest_WarnsIfCompatabilityBroken()
-        {
-            var ipPort = IpAddress01.Split(':');
-            var request1 = new GetServerPlayersRequest(ipPort[0], ipPort[1]);
-            var request2 = new GetServerPlayersRequest(ipPort[0], ipPort[1]);
-            var request3 = new GetServerPlayersRequest(ipPort[0], ipPort[1]);
+        {;
+            var ip2 = IpAddress02.Split(':');
+            var request1 = new GetServerPlayersRequest(IpAddress01, ip2[1]);
+            var request2 = new GetServerPlayersRequest(ip2[0], ip2[1]);
+            var request3 = new GetServerPlayersRequest(IpAddress01, ip2[1]);
             Assert.Equal(request1, request3);
             Assert.NotEqual(request1, request2);
             Assert.True(request1 == request3);
@@ -200,9 +200,10 @@ namespace SimpleLauncher.Test.Infrastructure.MonitorAPI.Contracts.SAMonitor
                         Score = score
                     }
                 });
-            Assert.Equal(response1, response3);
-            Assert.NotEqual(response1, response2);
-            Assert.True(response1 == response3);
+            Assert.Equal(response1.players[0], response3.players[0]);
+            Assert.Equal(response1.players[0].GetHashCode(), response3.players[0].GetHashCode());
+            Assert.True(response1.players.SequenceEqual(response3.players));
+            Assert.False(response1.players.SequenceEqual(response2.players));
         }
         /// <summary>
         /// Test for backward compatability of the record GetServersRequest

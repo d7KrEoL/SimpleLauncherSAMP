@@ -3,13 +3,12 @@ using System.IO;
 
 namespace SimpleLauncher.Infrastructure.Game.Utils
 {
-    internal static class SystemRegistry
+    public static class SystemRegistry
     {
         public static string FindGamePathInRegistry()
         {
             const string RegistryPath = @"SOFTWARE\SAMP";
             const string ValueName = "gta_sa_exe";
-            const string SampExecutableName = "samp.exe";
 
             using var key = Registry.CurrentUser.OpenSubKey(RegistryPath);
             if (key is null)

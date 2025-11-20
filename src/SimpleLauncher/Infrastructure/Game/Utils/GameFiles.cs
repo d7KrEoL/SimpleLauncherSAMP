@@ -1,10 +1,13 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.Text.RegularExpressions;
 
 namespace SimpleLauncher.Infrastructure.Game.Utils
 {
-    internal static class GameFiles
+    public static class GameFiles
     {
+        private const string GameExecutableFilePattern = @"gta.*sa\.exe$";
+        private const string SampClientExecutableFilePattern = @"sa.*mp\.dll$";
         /// <summary>
         /// Retrieves the path to the game executable by searching for a matching file in the directory of the specified
         /// client path.
@@ -27,13 +30,14 @@ namespace SimpleLauncher.Infrastructure.Game.Utils
         /// <exception cref="FileNotFoundException">
         /// Thrown if wrong samp client path was given (samp directory is empty).
         /// </exception>
-        internal static string? GetGameExecutablePathFromClientPath(string clientPath)
+        public static string? GetGameExecutablePathFromClientPath(string clientPath)
         {
             var clientPathDirectory = Path.GetDirectoryName(clientPath);
             if (clientPathDirectory is null)
                 throw new DirectoryNotFoundException("Cannot find game directory from client path");
             var files = Directory.GetFiles(clientPathDirectory);
-            return FindFileByPattern(clientPathDirectory, @"gta.*sa\.exe$");
+            return FindFileByPattern(clientPathDirectory, GameExecutableFilePattern)
+                .result;
         }
         /// <summary>
         /// Retrieves the path to the samp client library by searching for a matching file in the 
@@ -58,20 +62,67 @@ namespace SimpleLauncher.Infrastructure.Game.Utils
         /// <exception cref="FileNotFoundException">
         /// Thrown if wrong samp client path was given (samp directory is empty).
         /// </exception>
-        internal static string? GetClientLibraryPathFromExecutablePath(string clientPath)
+        public static string? GetClientLibraryPathFromExecutablePath(string clientPath)
         {
             var clientPathDirectory = Path.GetDirectoryName(clientPath);
             if (clientPathDirectory is null)
                 throw new DirectoryNotFoundException("Cannot find game directory from client path");
-            return FindFileByPattern(clientPathDirectory, @"sa.*mp\.dll$");
+            return FindFileByPattern(clientPathDirectory, 
+                SampClientExecutableFilePattern)
+                .result;
         }
-        private static string FindFileByPattern(string directoryPath, string pattern)
+
+        public static string? GetGameExecutableInDirectory(string directoryPath)
         {
-            var files = Directory.GetFiles(directoryPath);
+            var gameExecutable = FindFileByPattern(directoryPath, GameExecutableFilePattern);
+            if (!string.IsNullOrEmpty(gameExecutable.error))
+                return null;
+            return string.IsNullOrWhiteSpace(gameExecutable.result) ? null : gameExecutable.result;
+        }
+        public static string? GetClientLibraryInDirectory(string directoryPath)
+        {
+            var gameExecutable = FindFileByPattern(directoryPath, SampClientExecutableFilePattern);
+            if (!string.IsNullOrEmpty(gameExecutable.error))
+                return null;
+            return string.IsNullOrWhiteSpace(gameExecutable.result) ? null : gameExecutable.result;
+        }
+
+        public static bool IsGameDirectory(string path)
+        {
+            if (string.IsNullOrWhiteSpace(FindFileByPattern(path, 
+                GameExecutableFilePattern).result))
+                return false;
+            if (string.IsNullOrWhiteSpace(FindFileByPattern(path, 
+                SampClientExecutableFilePattern).result))
+                return false;
+            return true;
+        }
+        public static (string error, string result) FindFileByPattern(string directoryPath, string pattern)
+        {
+            string[] files;
+            try
+            {
+                files = Directory.GetFiles(directoryPath);
+            }
+            catch (IOException ex)
+            {
+                return ("Error accessing given directory path {ex}", ex.Message);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return ("Access to given directory path is denied {ex}", ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                return ("Given directory path is invalid {ex}", ex.Message);
+            }
             if (files.Length < 1)
                 throw new FileNotFoundException("samp directory have no files (wrong samp directory was given)");
             var regex = new Regex(pattern, RegexOptions.IgnoreCase);
-            return files.FirstOrDefault(fileName => regex.IsMatch(Path.GetFileName(fileName))) ?? string.Empty;
+            return (string.Empty, 
+                files.FirstOrDefault(fileName => 
+                regex.IsMatch(Path.GetFileName(fileName))) ?? 
+                string.Empty);
         }
     }
 }

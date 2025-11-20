@@ -3,4 +3,12 @@
   <PropertyGroup>
     <_LastSelectedProfileId>F:\Vik\Hobbeats\dotnet\[SA] SimpleLauncher\SimpleLauncher\src\SimpleLauncher\Properties\PublishProfiles\win64.pubxml</_LastSelectedProfileId>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Update="Presentation\AddGameClientWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Presentation\GameClientInfoDialog.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
 </Project>

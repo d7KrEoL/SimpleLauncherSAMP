@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using SimpleLauncher.Domain.Abstractions;
 using SimpleLauncher.Logging;
 using SimpleLauncher.Presentation;
-using SimpleLauncher.Services;
+using SimpleLauncher.Application.Services;
 using System.Diagnostics;
 using System.Security.Principal;
 using System.Windows;
@@ -13,7 +13,7 @@ namespace SimpleLauncher
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
-    public partial class App : Application
+    public partial class App : System.Windows.Application
     {
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -31,9 +31,10 @@ namespace SimpleLauncher
                     logService.LogEntries));
                 builder.SetMinimumLevel(LogLevel.Trace);
             });
-            // Регистрируем MainWindowViewModel для DI
             serviceCollection.AddTransient<SimpleLauncher.Presentation.ViewModels.MainWindowViewModel>();
             serviceProvider = serviceCollection.BuildServiceProvider();
+
+            ShutdownMode = ShutdownMode.OnMainWindowClose;
 
             var mainWindow = serviceProvider.GetRequiredService<MainWindow>();
             mainWindow.Show();
@@ -62,7 +63,7 @@ namespace SimpleLauncher
             try
             {
                 Process.Start(processInfo);
-                Application.Current.Shutdown();
+                System.Windows.Application.Current.Shutdown();
             }
             catch (Exception ex)
             {

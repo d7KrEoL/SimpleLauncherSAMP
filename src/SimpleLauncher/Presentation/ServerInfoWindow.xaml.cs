@@ -153,7 +153,7 @@ namespace SimpleLauncher.Presentation
                     return;
                 }
                 var clientPath = GameFiles.GetClientLibraryPathFromExecutablePath(gamePath);
-                if (gamePath is null)
+                if (clientPath is null)
                 {
                     _logger.LogError("Cannot find GTA:SA executable in root directory of SAMP client: {CLIENTPATH}", 
                         gamePath);
@@ -171,7 +171,7 @@ namespace SimpleLauncher.Presentation
                     _logger.LogError("{gamePath} - wrong client executable path", gamePath);
                     return;
                 }
-                _logger.LogInformation("Starting game at {path}", directory);
+                _logger.LogInformation("Starting game at {path}", gamePath);
                 _gameProcessManager.StartAndConnectAsync(IGameProcessManager.GameLaunchInjectionType.SAMP,
                     directory,
                     ipPort[0],
