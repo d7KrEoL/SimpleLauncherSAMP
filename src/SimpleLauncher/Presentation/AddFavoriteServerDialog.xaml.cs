@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Net;
+using System.Net.Sockets;
 using System.Windows;
+using System.Windows.Navigation;
 using static SimpleLauncher.Presentation.MainWindow;
 
 namespace SimpleLauncher.Presentation
@@ -30,9 +32,12 @@ namespace SimpleLauncher.Presentation
         {
             if (string.IsNullOrWhiteSpace(ipAddress))
                 return false;
-            if (!ipAddress.Contains(':'))
-                return false;
-            if (!IPEndPoint.TryParse(ipAddress.Remove(ipAddress.IndexOf(':')), out IPEndPoint? localEP))
+            var split = ipAddress.Split(':');
+            if (split[0].Where(c => !char.IsDigit(c)).Any())
+                split[0] = Dns.GetHostAddresses(split[0])?
+                    .FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork)?
+                    .ToString() ?? string.Empty;
+            if (!IPEndPoint.TryParse(split[0], out IPEndPoint? localEP))
                 return false;
             if (localEP is null)
                 return false;
@@ -58,6 +63,8 @@ namespace SimpleLauncher.Presentation
                     AddFavoriteOrHistoryOperationResult.FailedBadAddress);
                 return;
             }
+            if (!_ipAddressTextBox.Text.Contains(':'))
+                _ipAddressTextBox.Text += ":7777";
             if (_configuration[FavoritesSectionName]?.Contains(_ipAddressTextBox.Text ?? string.Empty) ?? false)
             {
                 SetStatus(StatusServerAlreadyExists, 
