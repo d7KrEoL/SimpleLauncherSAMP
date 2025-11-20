@@ -5,6 +5,7 @@ using SimpleLauncher.Infrastructure.Game.Utils;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Net.NetworkInformation;
 using System.Windows;
 using System.Windows.Controls;
@@ -163,6 +164,18 @@ namespace SimpleLauncher.Presentation
                 if (ipPort is null || ipPort.Length < 1)
                 {
                     _logger.LogError("Wrong server ip:port information");
+                    return;
+                }
+                if (ipPort[0].Where(c => !char.IsDigit(c)).Any())
+                {
+                    ipPort[0] = Dns.GetHostAddresses(ipPort[0])?
+                        .FirstOrDefault(ip =>
+                        ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)?
+                        .ToString() ?? string.Empty;
+                }
+                if (string.IsNullOrEmpty(ipPort[0]))
+                {
+                    _logger.LogError("Cannot resolve server address: {ADDRESS}", ipPort[0]);
                     return;
                 }
                 var directory = Path.GetDirectoryName(gamePath);
