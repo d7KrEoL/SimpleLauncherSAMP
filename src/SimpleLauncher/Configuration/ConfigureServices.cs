@@ -39,7 +39,6 @@ namespace SimpleLauncher.Configuration
                 config.DefaultRequestHeaders.Add("Accept", "application/json");
                 config.Timeout = TimeSpan.FromSeconds(30);
             });
-            collection.AddScoped<IProcessInjectionService, ProcessInjectionService>();
             collection.AddScoped<IGameProcessManager, GameProcessManager>();
             collection.AddScoped<ISampQueryAdapter, SampQueryAdapter>();
             collection.AddScoped<IMonitoringApiGateway, SAMonitorApiGateway>();

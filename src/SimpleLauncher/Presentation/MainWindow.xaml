@@ -127,6 +127,7 @@
                         Content="Add new server"
                         Width="150"
                         HorizontalAlignment="Center"
+                        Click="_addFavoriteServerButton_Click"
                         Command="{Binding AddFavoriteCommand}"
                         x:Name="_addFavoritesButton"
                         x:FieldModifier="private"/>

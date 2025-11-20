@@ -7,6 +7,7 @@ using SimpleLauncher.Domain.Abstractions;
 using SimpleLauncher.Domain.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -290,9 +291,10 @@ namespace SimpleLauncher.Presentation.ViewModels
                 return;
             }
             const string FavoritesSectionName = "ServerList:Favorites";
-            if (await OnAddServerToTab(FavoritesSectionName, sender, ipAddress, operationResult) !=
+            var addResult = await OnAddServerToTab(FavoritesSectionName, sender, ipAddress, operationResult);
+            if (addResult !=
                 AddFavoriteOrHistoryOperationResult.Success)
-                _logger.LogError("Server was not added to history");
+                _logger.LogError("Server was NOT added to favorites ({reason})", addResult.ToString());
             SwitchFavorites();
             var selectServer = ServerList
                     .FirstOrDefault(item => item.IpAddress.Equals(ipAddress));
@@ -304,9 +306,10 @@ namespace SimpleLauncher.Presentation.ViewModels
             AddFavoriteOrHistoryOperationResult operationResult)
         {
             const string HistorySectionName = "ServerList:LastConnected";
-            if (await OnAddServerToTab(HistorySectionName, sender, ipAddress, operationResult) !=
+            var addResult = await OnAddServerToTab(HistorySectionName, sender, ipAddress, operationResult);
+            if (addResult !=
                 AddFavoriteOrHistoryOperationResult.Success)
-                _logger.LogError("Server was NOT added to history");
+                _logger.LogError("Server was NOT added to history ({reason})", addResult);
             SwitchHistory();
             var selectServer = ServerList
                     .FirstOrDefault(item => item.IpAddress.Equals(ipAddress));
@@ -458,7 +461,12 @@ namespace SimpleLauncher.Presentation.ViewModels
                 .Where(ip => !string.IsNullOrWhiteSpace(ip))
                 .ToList();
 
-            foreach (var ip in serverIps)
+            await LoadServersInfoAsync(serverIps, sectionName);
+        }
+        private async Task LoadServersInfoAsync(List<string> serverIps, 
+            string sectionName)
+        {
+            var tasks = serverIps.Select(async ip =>
             {
                 try
                 {
@@ -470,14 +478,13 @@ namespace SimpleLauncher.Presentation.ViewModels
                     _currentOperationCancellationTokenSource.Token.ThrowIfCancellationRequested();
                     _logger.LogInformation("Server from {SECTIONNAME}: {IP}", sectionName, ip);
                     var serverInfo = await _serverListService
-                        .GetServerInfoAsync(ip, 
+                        .GetServerInfoAsync(ip,
                             _currentOperationCancellationTokenSource.Token);
                     _currentOperationCancellationTokenSource.Token.ThrowIfCancellationRequested();
                     if (serverInfo is null)
                     {
                         _logger.LogWarning("Could not get server info for: {IP}", ip);
                         ServerList.Add(ServerMeta.CreateUnknown(null, ip, ip));
-                        continue;
                     }
                     _logger.LogInformation("Server {NAME} added to list", serverInfo.Name);
                     ServerList.Add(serverInfo);
@@ -492,7 +499,8 @@ namespace SimpleLauncher.Presentation.ViewModels
                     _logger.LogError(ex, "Error loading server info for: {IP}", ip);
                     ServerList.Add(ServerMeta.CreateUnknown(null, ip, ip));
                 }
-            }
+            });
+            await Task.WhenAll(tasks);
         }
         private async Task LoadMonitoringsAsync()
         {
@@ -531,6 +539,30 @@ namespace SimpleLauncher.Presentation.ViewModels
                     path);
                 AddClient(clientName, version, path);
             }
+            if (!ClientList.Any())
+            {
+                var path = Infrastructure.Game.Utils.SystemRegistry.FindGamePathInRegistry();
+                var clientPath = Infrastructure
+                    .Game
+                    .Utils
+                    .GameFiles
+                    .GetClientLibraryPathFromExecutablePath(path);
+                if (clientPath is null)
+                {
+                    MessageBox.Show("Please add your client build manually via 'Add Game Build' button.",
+                        "No game client found",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                    if (_addGameClientWindow is null)
+                    {
+                        _addGameClientWindow = _serviceProvider
+                            .GetRequiredService<AddGameClientWindow>();
+                    }
+                    _addGameClientWindow.Show();
+                    return;
+                }
+                AddClient("SAMP Default", "Unknown", path);
+            }
             SelectedClient = ClientList.FirstOrDefault();
         }
         public void AddClient(string name, string version, string clientPath)
@@ -548,28 +580,10 @@ namespace SimpleLauncher.Presentation.ViewModels
                     version,
                     clientPath);
             }
-            /*if (!ClientList
-                .Any(item => item
-                    .Name
-                    .Equals(name)))
-            {
-                ClientList.Add(new GameClient(name, version, clientPath));
-                _logger.LogInformation("Client added: {NAME}", name);
-            }
-            else
-                _logger.LogInformation("Element {NAME} ({PATH}) is already exist",
-                    name,
-                    clientPath);*/
         }
         private async void AddFavoriteServer() 
         {
-            if (_addFavoriteServerDialog is not null)
-            {
-                _addFavoriteServerDialog.Close();
-                _addFavoriteServerDialog = null;
-            }
-            _addFavoriteServerDialog = _serviceProvider.GetRequiredService<AddFavoriteServerDialog>();
-            await _addFavoriteServerDialog.ShowAddServerDialog(OnAddServerToFavorites);
+            
         }
         private async void AddGameBuild()
         {
@@ -625,7 +639,7 @@ namespace SimpleLauncher.Presentation.ViewModels
             }
             _logger.LogInformation("Server selected:\n{NAME}\n{IP}", server.Name, server.IpAddress);
         }
-        private void HideExtraMenu() { /* Скрытие/отображение панели */ }
+        private void HideExtraMenu() { }
         private void ToggleLagcompFilter() 
         {
             FilterByLagcomp(IsOnlyLagcomp);
