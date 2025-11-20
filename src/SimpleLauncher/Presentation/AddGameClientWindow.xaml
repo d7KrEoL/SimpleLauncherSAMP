@@ -1,0 +1,121 @@
+﻿<Window x:Class="SimpleLauncher.Presentation.AddGameClientWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SimpleLauncher.Presentation"
+        xmlns:viewmodels="clr-namespace:SimpleLauncher.Presentation.ViewModels"
+        mc:Ignorable="d"
+        Title="Game clients" 
+        Height="300"
+        MinHeight="200"
+        MaxHeight="500"
+        Width="600"
+        MinWidth="600"
+        MaxWidth="800"
+        Background="{StaticResource DarkBackgroundBrush}"
+        Opacity="0.8"
+        WindowStyle="ToolWindow">
+    <Window.Resources>
+        <CollectionViewSource x:Key="ClientListViewSource" Source="{Binding ClientList}"/>
+    </Window.Resources>
+    <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="30"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="0"
+                    Grid.Row="0"
+                    Grid.ColumnSpan="5">
+            <TextBlock Text="Client List"
+                       HorizontalAlignment="Center"
+                       Style="{StaticResource DarkModernTitle}"
+                       Foreground="{StaticResource PrimaryBrush}"/>
+        </StackPanel>
+        <ListView Grid.Row="2"
+                  Grid.Column="0"
+                  Grid.ColumnSpan="5"
+                  Style="{StaticResource DarkModernListView}"
+                  ItemsSource="{Binding ClientList}"
+                  Background="Transparent" 
+                  HorizontalAlignment="Center"
+                  SelectedItem="{Binding SelectedClient, Mode=TwoWay}"
+                  x:Name="_gameClientList"
+                  x:FieldModifier="private"
+                  MinWidth="400"
+                  Width="580"
+                  MaxWidth="800" 
+                  SelectionChanged="_gameClientList_SelectionChanged">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <EventSetter Event="MouseDoubleClick" Handler="ListViewItem_MouseDoubleClick"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#BB86FC"/>
+                            <Setter Property="Foreground" Value="Black"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="#9977FF"/>
+                            <Setter Property="Foreground" Value="#111111"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn 
+                        x:Name="GameClientName" 
+                        Width="150">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn x:Name="GameClientVersion" 
+                                    Width="70" 
+                                    DisplayMemberBinding="{Binding Version}"/>
+                    <GridViewColumn x:Name="GameClientPath"  
+                                    DisplayMemberBinding="{Binding Path}"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <StackPanel Grid.Row="3"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="5"
+                    MinHeight="5">
+        </StackPanel>
+        <Button Grid.Row="4"
+                Grid.Column="2"
+                Content="Add new build"
+                Background="{StaticResource SurfaceDarkBrush}"
+                Foreground="{StaticResource PrimaryBrush}"
+                Command="{Binding ShowGameClientFolderSelectionDialogCommand}"/>
+        <Button Grid.Row="4"
+                Grid.Column="4"
+                Height="20"
+                MinWidth="70"
+                MaxWidth="90"
+                Content="Remove build"
+                Visibility="Hidden"
+                Background="{StaticResource SurfaceDarkBrush}"
+                Foreground="{StaticResource PrimaryBrush}"
+                x:Name="_removeClientButton"
+                x:FieldModifier="private" 
+                Command="{Binding RemoveGameClientCommand}"
+                Click="_removeClientButton_Click"
+                />
+    </Grid>
+</Window>
