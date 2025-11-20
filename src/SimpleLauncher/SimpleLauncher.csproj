@@ -30,7 +30,6 @@
   </Target>
   <!--  To use unsafe NativeImports for custom Injector   -->
   <PropertyGroup>
-	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<ApplicationIcon>logo00.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>

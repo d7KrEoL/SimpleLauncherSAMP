@@ -553,18 +553,6 @@ namespace SimpleLauncher.Presentation.ViewModels
                     version,
                     clientPath);
             }
-            /*if (!ClientList
-                .Any(item => item
-                    .Name
-                    .Equals(name)))
-            {
-                ClientList.Add(new GameClient(name, version, clientPath));
-                _logger.LogInformation("Client added: {NAME}", name);
-            }
-            else
-                _logger.LogInformation("Element {NAME} ({PATH}) is already exist",
-                    name,
-                    clientPath);*/
         }
         private async void AddFavoriteServer() 
         {
@@ -630,7 +618,7 @@ namespace SimpleLauncher.Presentation.ViewModels
             }
             _logger.LogInformation("Server selected:\n{NAME}\n{IP}", server.Name, server.IpAddress);
         }
-        private void HideExtraMenu() { /* Скрытие/отображение панели */ }
+        private void HideExtraMenu() { }
         private void ToggleLagcompFilter() 
         {
             FilterByLagcomp(IsOnlyLagcomp);

@@ -129,8 +129,8 @@ namespace SimpleLauncher.Presentation
         }
         private async void GameTermination()
         {
-            if (_gameProcess is not null) 
-                await GameProcess.TerminateProcessAsync(_gameProcess);
+            /*if (_gameProcess is not null) 
+                await GameProcess.TerminateProcessAsync(_gameProcess);*/
         }
         private void _connectButton_Click(object sender, RoutedEventArgs e)
         {
