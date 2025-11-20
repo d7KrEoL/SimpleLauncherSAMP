@@ -458,7 +458,12 @@ namespace SimpleLauncher.Presentation.ViewModels
                 .Where(ip => !string.IsNullOrWhiteSpace(ip))
                 .ToList();
 
-            foreach (var ip in serverIps)
+            await LoadServersInfoAsync(serverIps, sectionName);
+        }
+        private async Task LoadServersInfoAsync(List<string> serverIps, 
+            string sectionName)
+        {
+            var tasks = serverIps.Select(async ip =>
             {
                 try
                 {
@@ -470,14 +475,13 @@ namespace SimpleLauncher.Presentation.ViewModels
                     _currentOperationCancellationTokenSource.Token.ThrowIfCancellationRequested();
                     _logger.LogInformation("Server from {SECTIONNAME}: {IP}", sectionName, ip);
                     var serverInfo = await _serverListService
-                        .GetServerInfoAsync(ip, 
+                        .GetServerInfoAsync(ip,
                             _currentOperationCancellationTokenSource.Token);
                     _currentOperationCancellationTokenSource.Token.ThrowIfCancellationRequested();
                     if (serverInfo is null)
                     {
                         _logger.LogWarning("Could not get server info for: {IP}", ip);
                         ServerList.Add(ServerMeta.CreateUnknown(null, ip, ip));
-                        continue;
                     }
                     _logger.LogInformation("Server {NAME} added to list", serverInfo.Name);
                     ServerList.Add(serverInfo);
@@ -492,7 +496,8 @@ namespace SimpleLauncher.Presentation.ViewModels
                     _logger.LogError(ex, "Error loading server info for: {IP}", ip);
                     ServerList.Add(ServerMeta.CreateUnknown(null, ip, ip));
                 }
-            }
+            });
+            await Task.WhenAll(tasks);
         }
         private async Task LoadMonitoringsAsync()
         {
