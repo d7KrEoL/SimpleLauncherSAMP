@@ -123,10 +123,6 @@ namespace SimpleLauncher.Presentation
             _pingCancellationTokenSource?.Dispose();
             _launchGameCancellationTokenSource?.Cancel();
             _launchGameCancellationTokenSource?.Dispose();
-            GameTermination();
-            _serverInfo = ServerMeta.CreateUnknown("Loading...", "Loading...", "Loading...");
-            _players.Clear();
-            _gameProcess = null;
         }
         private async void GameTermination()
         {
