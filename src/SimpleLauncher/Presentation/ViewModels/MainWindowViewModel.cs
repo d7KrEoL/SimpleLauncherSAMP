@@ -291,9 +291,10 @@ namespace SimpleLauncher.Presentation.ViewModels
                 return;
             }
             const string FavoritesSectionName = "ServerList:Favorites";
-            if (await OnAddServerToTab(FavoritesSectionName, sender, ipAddress, operationResult) !=
+            var addResult = await OnAddServerToTab(FavoritesSectionName, sender, ipAddress, operationResult);
+            if (addResult !=
                 AddFavoriteOrHistoryOperationResult.Success)
-                _logger.LogError("Server was not added to history");
+                _logger.LogError("Server was NOT added to favorites ({reason})", addResult.ToString());
             SwitchFavorites();
             var selectServer = ServerList
                     .FirstOrDefault(item => item.IpAddress.Equals(ipAddress));
@@ -305,9 +306,10 @@ namespace SimpleLauncher.Presentation.ViewModels
             AddFavoriteOrHistoryOperationResult operationResult)
         {
             const string HistorySectionName = "ServerList:LastConnected";
-            if (await OnAddServerToTab(HistorySectionName, sender, ipAddress, operationResult) !=
+            var addResult = await OnAddServerToTab(HistorySectionName, sender, ipAddress, operationResult);
+            if (addResult !=
                 AddFavoriteOrHistoryOperationResult.Success)
-                _logger.LogError("Server was NOT added to history");
+                _logger.LogError("Server was NOT added to history ({reason})", addResult);
             SwitchHistory();
             var selectServer = ServerList
                     .FirstOrDefault(item => item.IpAddress.Equals(ipAddress));

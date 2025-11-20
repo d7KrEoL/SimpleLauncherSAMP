@@ -40,8 +40,9 @@ namespace SimpleLauncher.Application.Services
                         .ToJsonString()
                         .Equals($"\"{value}\"") ?? false);
                 if (!elements.Any())
+                    array.Add(value);
+                else
                     return false;
-                array.Add(value);
             }
             else
                 current?[lastPart] = new JsonArray(value);
@@ -256,7 +257,7 @@ namespace SimpleLauncher.Application.Services
             }
             catch
             {
-                // _logger.LogError(ex, CannotReloadConfigErrorMessage);
+                //_logger.LogError(ex, CannotReloadConfigErrorMessage);
                 return false;
             }
             return true;
