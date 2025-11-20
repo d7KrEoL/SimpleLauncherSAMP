@@ -1,12 +1,13 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using SimpleLauncher.Application.Services;
 using SimpleLauncher.Domain.Abstractions;
 using SimpleLauncher.Infrastructure.Game;
 using SimpleLauncher.Infrastructure.MonitorAPI.Gateways;
 using SimpleLauncher.Infrastructure.SampQuery;
 using SimpleLauncher.Presentation;
-using SimpleLauncher.Services;
+using SimpleLauncher.Presentation.ViewModels;
 
 namespace SimpleLauncher.Configuration
 {
@@ -53,6 +54,7 @@ namespace SimpleLauncher.Configuration
                 return new ConfigurationService(configuration, configFilePath);
             });
             collection.AddScoped<IServerListService, ServerListService>();
+            collection.AddScoped<IGameClientService, GameClientService>();
         }
         private static void AddLoggingServices(IServiceCollection collection)
         {
@@ -62,10 +64,13 @@ namespace SimpleLauncher.Configuration
         }
         private static void AddPresentationServices(IServiceCollection collection)
         {
-            collection.AddTransient<Presentation.ViewModels.MainWindowViewModel>();
+            collection.AddTransient<AddGameClientWindowViewModel>();
+            collection.AddTransient<MainWindowViewModel>();
             collection.AddTransient<MainWindow>();
             collection.AddTransient<ServerInfoWindow>();
             collection.AddTransient<AddFavoriteServerDialog>();
+            collection.AddTransient<GameClientInfoDialog>();
+            collection.AddTransient<AddGameClientWindow>();
         }
     }
 }

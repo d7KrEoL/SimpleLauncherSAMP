@@ -2,11 +2,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
+using SimpleLauncher.Application.Services;
 using SimpleLauncher.Domain.Abstractions;
 using SimpleLauncher.Domain.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -20,13 +20,15 @@ namespace SimpleLauncher.Presentation.ViewModels
         public ObservableCollection<ServerMeta> ServerList { get; } = new();
         public ObservableCollection<string> LogEntries { get; } = new();
         public ObservableCollection<IMonitoringApiGateway> MonitoringServices { get; } = new();
-        public ObservableCollection<GameClient> ClientList { get; } = new();
+        public ObservableCollection<GameClient> ClientList { get; }
 
         private readonly IServiceProvider _serviceProvider;
         private readonly IConfigurationService _configurationService;
+        private readonly IGameClientService _gameClientService;
         private readonly Dictionary<string, object?> _activeFilters = new();
         private static readonly Regex NicknameValidCharsRegex = new Regex(@"^[A-Za-z0-9_\.\[\]@!#$]*$");
         private AddFavoriteServerDialog? _addFavoriteServerDialog;
+        private AddGameClientWindow? _addGameClientWindow; 
         private ServerInfoWindow? _serverInfoWindow;
         private string _nickname = "Nickname";
         public string Nickname
@@ -44,7 +46,7 @@ namespace SimpleLauncher.Presentation.ViewModels
         public IMonitoringApiGateway? SelectedMonitoringService
         {
             get => _selectedMonitoringService;
-            set { _selectedMonitoringService = value; OnPropertyChanged(); OnMonitoringServiceChanged(); }
+            set { _selectedMonitoringService = value; OnPropertyChanged(); OnMonitoringServiceChangedAsync(); }
         }
 
         private GameClient? _selectedClient;
@@ -105,7 +107,8 @@ namespace SimpleLauncher.Presentation.ViewModels
             set { _monitoringServiceMap = value; OnPropertyChanged(); }
         }
         private ICollectionView? _serverListView;
-        public ICollectionView ServerListView => _serverListView ??= CollectionViewSource.GetDefaultView(ServerList);
+        public ICollectionView ServerListView => 
+            _serverListView ??= CollectionViewSource.GetDefaultView(ServerList);
         public bool IsInvertedHostname 
         {
             get; 
@@ -202,6 +205,7 @@ namespace SimpleLauncher.Presentation.ViewModels
 
         public ICommand RefreshCommand { get; }
         public ICommand AddFavoriteCommand { get; }
+        public ICommand AddGameBuildCommand { get; }
         public ICommand AddHistoryCommand { get; }
         public ICommand SwitchFavoritesCommand { get; }
         public ICommand SwitchHistoryCommand { get; }
@@ -219,6 +223,7 @@ namespace SimpleLauncher.Presentation.ViewModels
         public ICommand OnlyOpenMpFilterCommand { get; }
         public ICommand OnlySampFilterCommand { get; }
         public ICommand SampCacFilterCommand { get; }
+        public ICommand CloseMainWindowCommand { get; }
 
         private readonly ILogger<MainWindowViewModel> _logger;
         private readonly IServerListService _serverListService;
@@ -232,6 +237,7 @@ namespace SimpleLauncher.Presentation.ViewModels
             IConfiguration configuration,
             IServiceProvider serviceProvider,
             IConfigurationService configurationService,
+            IGameClientService gameClientService,
             ServerInfoWindow serverInfoWindow)
         {
             _logger = logger;
@@ -242,16 +248,20 @@ namespace SimpleLauncher.Presentation.ViewModels
             _serviceProvider = serviceProvider;
             _configurationService = configurationService;
             _serverInfoWindow = serverInfoWindow;
+            _gameClientService = gameClientService;
+            ClientList = (_gameClientService as GameClientService)?.Clients
+                ?? new ObservableCollection<GameClient>();
 
             RefreshCommand = new RelayCommand(_ => _ = RefreshServers());
             SwitchFavoritesCommand = new RelayCommand(_ => SwitchFavorites());
             AddFavoriteCommand = new RelayCommand(_ => AddFavoriteServer());
+            AddGameBuildCommand = new RelayCommand(_ => AddGameBuild());
             AddHistoryCommand = new RelayCommand(_ => AddFavoriteServer());
             SwitchHistoryCommand = new RelayCommand(_ => SwitchHistory());
             SwitchAllCommand = new RelayCommand(_ => SwitchAll());
             ClearLogCommand = new RelayCommand(_ => ClearLog());
             SortCommand = new RelayCommand(param => SortBy(param?.ToString()));
-            ServerDoubleClickCommand = new RelayCommand(param => OnServerDoubleClick(param));
+            ServerDoubleClickCommand = new RelayCommand(param => OnServerDoubleClickAsync(param));
             HideExtraMenuCommand = new RelayCommand(_ => HideExtraMenu());
             FilterCommand = new RelayCommand(_ => UpdateServerListFilter());
             LagcompFilterCommand = new RelayCommand(_ => ToggleLagcompFilter());
@@ -262,6 +272,7 @@ namespace SimpleLauncher.Presentation.ViewModels
             OnlyOpenMpFilterCommand = new RelayCommand(_ => ToggleOnlyOpenMpFilter());
             OnlySampFilterCommand = new RelayCommand(_ => ToggleOnlySampFilter());
             SampCacFilterCommand = new RelayCommand(_ => ToggleSampCacFilter());
+            CloseMainWindowCommand = new RelayCommand(_ => CloseMainWindow());
         }
         public async Task InitializeAsync()
         {
@@ -505,16 +516,11 @@ namespace SimpleLauncher.Presentation.ViewModels
             }
             foreach (var clientSection in clientListSection.GetChildren())
             {
-                const string ExecutableFileNameShouldBe = "gta_sa.exe";
                 var clientName = clientSection.Key;
                 var version = clientSection.GetValue<string>("Version") ?? "Unknown";
                 var path = clientSection.GetValue<string>("Path") ?? string.Empty;
 
-                if (string.IsNullOrWhiteSpace(path) ||
-                    !File.Exists(path) ||
-                    !Path.GetFileName(path)
-                        .Equals(ExecutableFileNameShouldBe,
-                        StringComparison.OrdinalIgnoreCase))
+                if (string.IsNullOrWhiteSpace(path))
                 {
                     _logger.LogWarning("Invalid client path: {PATH}", path);
                     continue;
@@ -533,7 +539,16 @@ namespace SimpleLauncher.Presentation.ViewModels
                 name,
                 version,
                 clientPath);
-            if (!ClientList
+            var gameClient = _gameClientService
+                .AddGameClientAsync(name, version, clientPath);
+            if (gameClient is null)
+            {
+                _logger.LogInformation("Cannot add game client {NAME} {VERSION} {PATH}",
+                    name,
+                    version,
+                    clientPath);
+            }
+            /*if (!ClientList
                 .Any(item => item
                     .Name
                     .Equals(name)))
@@ -544,7 +559,7 @@ namespace SimpleLauncher.Presentation.ViewModels
             else
                 _logger.LogInformation("Element {NAME} ({PATH}) is already exist",
                     name,
-                    clientPath);
+                    clientPath);*/
         }
         private async void AddFavoriteServer() 
         {
@@ -555,6 +570,17 @@ namespace SimpleLauncher.Presentation.ViewModels
             }
             _addFavoriteServerDialog = _serviceProvider.GetRequiredService<AddFavoriteServerDialog>();
             await _addFavoriteServerDialog.ShowAddServerDialog(OnAddServerToFavorites);
+        }
+        private async void AddGameBuild()
+        {
+            if (_addGameClientWindow is not null)
+            {
+                _addGameClientWindow.Close();
+                _addGameClientWindow = null;
+            }
+            _addGameClientWindow = _serviceProvider.GetRequiredService<AddGameClientWindow>();
+            _addGameClientWindow.Show();
+            _logger.LogWarning("AddGameBuild in ViewModel is empty");
         }
         private async void _favoritesButton_Click(object sender, RoutedEventArgs e)
         {
@@ -589,7 +615,7 @@ namespace SimpleLauncher.Presentation.ViewModels
             );
             ServerListView.Refresh();
         }
-        private async void OnServerDoubleClick(object? param) 
+        private async void OnServerDoubleClickAsync(object? param) 
         {
             var server = param as ServerMeta;
             if (server is null)
@@ -632,8 +658,13 @@ namespace SimpleLauncher.Presentation.ViewModels
         { 
             FilterBySampCac(IsSampCac); 
         }
-
-        private async void OnMonitoringServiceChanged() 
+        private void CloseMainWindow()
+        {
+            _currentOperationCancellationTokenSource?.Cancel();
+            _addFavoriteServerDialog?.Close();
+            _addGameClientWindow?.Close();
+        }
+        private async void OnMonitoringServiceChangedAsync() 
         {
             if (SelectedMonitoringService is null)
                 return;
@@ -646,9 +677,10 @@ namespace SimpleLauncher.Presentation.ViewModels
             if (SelectedClient == null || string.IsNullOrWhiteSpace(SelectedClient.Path)) return;
             const string keyPath = @"SOFTWARE\SAMP";
             const string valueName = "gta_sa_exe";
+            var path = $"{SelectedClient.Path}\\{SelectedClient.GameExecutableName}";
             try
             {
-                Registry.SetValue(@"HKEY_CURRENT_USER\" + keyPath, valueName, SelectedClient.Path, RegistryValueKind.String);
+                Registry.SetValue(@"HKEY_CURRENT_USER\" + keyPath, valueName, path, RegistryValueKind.String);
             }
             catch (Exception ex)
             {
@@ -778,8 +810,9 @@ namespace SimpleLauncher.Presentation.ViewModels
 
             try
             {
-                if (Application.Current?.Dispatcher?.CheckAccess() == false)
-                    Application.Current.Dispatcher.Invoke(() => serverListViewSource.Refresh());
+                if (System.Windows.Application.Current?.Dispatcher?.CheckAccess() == false)
+                    System.Windows.Application.Current.Dispatcher.Invoke(() => 
+                    serverListViewSource.Refresh());
                 else
                     serverListViewSource.Refresh();
             }
@@ -846,4 +879,4 @@ namespace SimpleLauncher.Presentation.ViewModels
         public event EventHandler? CanExecuteChanged;
         public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
     }
-    }
+}

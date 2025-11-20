@@ -20,10 +20,6 @@ namespace SimpleLauncher.Presentation
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogService _logService;
         private readonly ILogger<MainWindow> _logger;
-        private readonly ISampQueryAdapter _sampQuery;
-        private readonly IServerListService _serverListService;
-        private readonly IConfiguration _configuration;
-        private readonly IConfigurationService _configurationService;
         private ServerInfoWindow? _serverInfoWindow;
         private AddFavoriteServerDialog? _addFavoriteServerDialog;
         private CancellationTokenSource? _serverInfoCancellationTokenSource;
@@ -45,10 +41,6 @@ namespace SimpleLauncher.Presentation
             _serviceProvider = serviceProvider;
             _logService = logService;
             _logger = logger;
-            _serverListService = serverList;
-            _sampQuery = sampQuery;
-            _configuration = configuration;
-            _configurationService = configurationService;
 
             InitializeComponent();
             _versionLabel.Text = $"Version: " +
@@ -72,7 +64,13 @@ namespace SimpleLauncher.Presentation
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
-            
+            if (DataContext is MainWindowViewModel vm && vm.CloseMainWindowCommand.CanExecute(null))
+            {
+                _serverInfoCancellationTokenSource?.Cancel();
+                vm.CloseMainWindowCommand.Execute(null);
+                _serverInfoWindow?.Close();
+                _addFavoriteServerDialog?.Close();
+            }
         }
         private async void ListViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
@@ -158,6 +156,7 @@ namespace SimpleLauncher.Presentation
                 _nicknameInput.Visibility = Visibility.Collapsed;
                 _nickNameTextBlock.Visibility = Visibility.Collapsed;
                 _addFavoritesButton.Visibility = Visibility.Collapsed;
+                _addGameBuild.Visibility = Visibility.Collapsed;
                 _hideExtraMenuButton.Content = "↓";
             }
             else
@@ -166,6 +165,7 @@ namespace SimpleLauncher.Presentation
                 _nicknameInput.Visibility = Visibility.Visible;
                 _nickNameTextBlock.Visibility = Visibility.Visible;
                 _addFavoritesButton.Visibility = Visibility.Visible;
+                _addGameBuild.Visibility = Visibility.Visible;
                 _hideExtraMenuButton.Content = "↑";
             }
         }

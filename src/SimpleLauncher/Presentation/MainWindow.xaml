@@ -114,7 +114,7 @@
 
                 <!-- Заголовок по центру -->
                 <TextBlock Grid.Column="2" 
-                           Text="Server Launcher"
+                           Text="Simple Launcher"
                            Foreground="{StaticResource TextPrimaryBrush}"
                            FontSize="18"
                            FontWeight="SemiBold"
@@ -153,6 +153,15 @@
                                    Foreground="{StaticResource TextSecondaryBrush}"/>
                     </Grid>
                 </StackPanel>
+                <Button Grid.Column="4"
+                        Grid.Row="2"
+                        Content="Add new game build"
+                        Width="140"
+                        Background="{StaticResource DarkBackgroundBrush}"
+                        Foreground="{StaticResource TextPrimaryBrush}"
+                        Command="{Binding AddGameBuildCommand}"
+                        x:Name="_addGameBuild"
+                        x:FieldModifier="private"/>
             </Grid>
         </Border>
 

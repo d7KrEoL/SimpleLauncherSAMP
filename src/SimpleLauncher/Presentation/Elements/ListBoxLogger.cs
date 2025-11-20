@@ -38,7 +38,7 @@ namespace SimpleLauncher.Presentation
                 logEntry += $"\nException: {exception.Message}";
             }
 
-            Application.Current?.Dispatcher?.Invoke(() =>
+            System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
             {
                 _logEntries.Add(logEntry);
 
