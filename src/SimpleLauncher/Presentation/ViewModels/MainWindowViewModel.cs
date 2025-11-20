@@ -583,13 +583,7 @@ namespace SimpleLauncher.Presentation.ViewModels
         }
         private async void AddFavoriteServer() 
         {
-            if (_addFavoriteServerDialog is not null)
-            {
-                _addFavoriteServerDialog.Close();
-                _addFavoriteServerDialog = null;
-            }
-            _addFavoriteServerDialog = _serviceProvider.GetRequiredService<AddFavoriteServerDialog>();
-            await _addFavoriteServerDialog.ShowAddServerDialog(OnAddServerToFavorites);
+            
         }
         private async void AddGameBuild()
         {

@@ -72,6 +72,24 @@ namespace SimpleLauncher.Presentation
                 _addFavoriteServerDialog?.Close();
             }
         }
+        private async void _addFavoriteServerButton_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = DataContext as MainWindowViewModel;
+            if (vm is null)
+            {
+                _logger.LogError("MainWindowViewModel is null in _addFavoriteServerButton_Click");
+                return;
+            }
+            if (_addFavoriteServerDialog is not null)
+            {
+                _addFavoriteServerDialog.Close();
+                _addFavoriteServerDialog = null;
+            }
+            _addFavoriteServerDialog = _serviceProvider.GetRequiredService<AddFavoriteServerDialog>();
+            _addFavoriteServerDialog.Owner = this;
+            _addFavoriteServerDialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            await _addFavoriteServerDialog.ShowAddServerDialog(vm.OnAddServerToFavorites);
+        }
         private async void ListViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (sender is ListViewItem item && item.DataContext is ServerMeta server)
@@ -195,6 +213,11 @@ namespace SimpleLauncher.Presentation
             Clipboard.SetText(text);
         }
         private void RefreshFilteredSecverList()
+        {
+
+        }
+
+        private void _addFavoritesButton_Click(object sender, RoutedEventArgs e)
         {
 
         }
