@@ -7,6 +7,7 @@ using SimpleLauncher.Domain.Abstractions;
 using SimpleLauncher.Domain.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -535,6 +536,30 @@ namespace SimpleLauncher.Presentation.ViewModels
                     version,
                     path);
                 AddClient(clientName, version, path);
+            }
+            if (!ClientList.Any())
+            {
+                var path = Infrastructure.Game.Utils.SystemRegistry.FindGamePathInRegistry();
+                var clientPath = Infrastructure
+                    .Game
+                    .Utils
+                    .GameFiles
+                    .GetClientLibraryPathFromExecutablePath(path);
+                if (clientPath is null)
+                {
+                    MessageBox.Show("Please add your client build manually via 'Add Game Build' button.",
+                        "No game client found",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                    if (_addGameClientWindow is null)
+                    {
+                        _addGameClientWindow = _serviceProvider
+                            .GetRequiredService<AddGameClientWindow>();
+                    }
+                    _addGameClientWindow.Show();
+                    return;
+                }
+                AddClient("SAMP Default", "Unknown", path);
             }
             SelectedClient = ClientList.FirstOrDefault();
         }

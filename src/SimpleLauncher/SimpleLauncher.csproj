@@ -28,10 +28,19 @@
 	</PropertyGroup>
 	<WriteLinesToFile File="build.number" Lines="$(NewBuildNumber)" Overwrite="true" />
   </Target>
-  <!--  To use unsafe NativeImports for custom Injector   -->
   <PropertyGroup>
 	<ApplicationIcon>logo00.ico</ApplicationIcon>
   </PropertyGroup>
+    <PropertyGroup>
+	    <InterceptorsNamespaces>
+			$(InterceptorsNamespaces);Microsoft.Extensions.Configuration.Binder.SourceGeneration
+		</InterceptorsNamespaces>
+    </PropertyGroup>
+	<PropertyGroup>
+		<PublishSingleFile>true</PublishSingleFile>
+		<SelfContained>true</SelfContained>
+		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+	</PropertyGroup>
   <ItemGroup>
     <Content Include="logo00.ico" />
   </ItemGroup>
